@@ -10,7 +10,7 @@ chmod +x scripts/build-app.sh
 open outputs/Daylight.app
 ```
 
-The first time you connect Apple Calendar, macOS asks for full calendar access. Daylight needs read access to show events and write access to create, edit, and delete them. The app is sandboxed; its only network access is the signed GitHub release feed used for updates.
+The first time you connect Apple Calendar, macOS asks for full calendar access. Daylight needs read access to show events and write access to create, edit, and delete them. Its network access is limited to the signed GitHub release feed used for updates.
 
 ## Interaction
 
