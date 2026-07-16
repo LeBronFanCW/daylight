@@ -15,9 +15,10 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 ## Interaction
 
 - Choose **Create Background…** from the menu bar, or press **Command–B** while the calendar is interactive.
-- Choose an image to make it the base background. Use it unchanged, or describe supported tone, brightness, contrast, saturation, monochrome, warmth, and blur edits.
+- Describe any background and choose **Generate with Image Playground**. On macOS 27, Apple’s supported system sheet creates the image and returns the approved result to Daylight.
+- Choose an image to make it the base background. Reimagine it in Image Playground, use it unchanged, or apply quick private tone, brightness, contrast, saturation, monochrome, warmth, and blur edits.
 - Add up to eight images, PDFs, text, RTF, or JSON references. The first image is always clearly labeled as the base image.
-- On macOS 26, Daylight can route prompts to Image Playground in the background. On macOS 27, where Apple removed that hidden API, image transformations happen privately inside Daylight and text-only creation is explicitly labeled as abstract.
+- Apple discontinued hidden Image Playground generation on macOS 27. Daylight uses Apple’s required system sheet for full generation and keeps separate local-only shortcuts for fast edits.
 - Preview the result, then choose **Apply Background** to use it on the desktop and Lock Screen.
 - Click the calendar icon in the menu bar to toggle interactive mode.
 - Press **Control–Shift–T** from any app to toggle interactive mode.

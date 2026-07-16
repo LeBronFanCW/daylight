@@ -1,7 +1,7 @@
-# Daylight 2.1.0
+# Daylight 2.2.0
 
-- Makes the first selected image the clearly labeled base image.
-- Adds a one-click Use Image as Background action that preserves the original image.
-- Makes Transform This Image edit the selected image instead of covering it with unrelated abstract shapes.
-- Supports requested brightness, mood, contrast, saturation, monochrome, warmth, and blur changes privately on macOS 27.
-- Labels text-only macOS 27 creation honestly as abstract because Apple removed hidden Image Playground generation.
+- Restores full prompt-driven image generation on macOS 27 through Apple’s supported Image Playground sheet.
+- Seeds Image Playground with Daylight’s Foundation Models art direction and optional base image.
+- Returns the approved generated image directly to Daylight for preview and application.
+- Keeps Quick Private Edit and Use Image as Background for instant local image workflows.
+- Handles Image Playground cancellation and unavailable states without losing the prompt or references.

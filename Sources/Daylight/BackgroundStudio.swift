@@ -31,6 +31,7 @@ final class BackgroundStudioModel: ObservableObject {
     @Published private(set) var references: [BackgroundReference] = []
     @Published private(set) var state: BackgroundCreationState = .idle
     @Published private(set) var createdImageURL: URL?
+    @Published var presentsImagePlayground = false
     @Published private(set) var refinedConcept = ""
 
     private let appModel: AppModel
@@ -93,6 +94,39 @@ final class BackgroundStudioModel: ObservableObject {
             if error is CancellationError { return }
             state = .failed(error.localizedDescription)
         }
+    }
+
+    func generateWithImagePlayground() async {
+        guard canCreate else { return }
+        state = .understanding
+        createdImageURL = nil
+        do {
+            let context = try textContext()
+            refinedConcept = try await refineConcept(userPrompt: prompt, textContext: context)
+            state = .idle
+            presentsImagePlayground = true
+        } catch {
+            if error is CancellationError { return }
+            state = .failed(error.localizedDescription)
+        }
+    }
+
+    func receivePlaygroundImage(at temporaryURL: URL) {
+        presentsImagePlayground = false
+        do {
+            try FileManager.default.createDirectory(at: creationsDirectory, withIntermediateDirectories: true)
+            let destination = creationsDirectory.appendingPathComponent("daylight-\(UUID().uuidString).png")
+            try Data(contentsOf: temporaryURL).write(to: destination, options: .atomic)
+            createdImageURL = destination
+            state = .ready
+        } catch {
+            state = .failed("Image Playground finished, but Daylight couldn’t save the image: \(error.localizedDescription)")
+        }
+    }
+
+    func cancelImagePlayground() {
+        presentsImagePlayground = false
+        state = .idle
     }
 
     func applyBackground() {
@@ -423,8 +457,15 @@ private struct BackgroundStudioView: View {
     @ObservedObject var model: BackgroundStudioModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var supportsImagePlayground: Bool {
+        if #available(macOS 15.1, *) {
+            return ImagePlaygroundViewController.isAvailable
+        }
+        return false
+    }
+
     var body: some View {
-        content
+        playgroundPresenter(content)
     }
 
     private var content: some View {
@@ -442,9 +483,9 @@ private struct BackgroundStudioView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Create a background")
+                    Text("Create any background")
                         .font(.system(size: 28, weight: .semibold, design: .rounded))
-                    Text("Choose a base image, then describe only the changes you want. Or create a new abstract wallpaper from words.")
+                    Text("Describe what you want. On macOS 27, Apple’s Image Playground creates the real image and returns it to Daylight.")
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -456,7 +497,7 @@ private struct BackgroundStudioView: View {
                         if model.prompt.isEmpty {
                             Text(model.hasBaseImage
                                  ? "Example: make it warmer, darker, monochrome, vivid, or softly blurred."
-                                 : "Describe the colors, atmosphere, and composition for an abstract wallpaper.")
+                                 : "Example: a photorealistic alpine lake at sunrise with open space for desktop icons.")
                                 .font(.body).foregroundStyle(.tertiary)
                                 .padding(.horizontal, 15).padding(.vertical, 18)
                                 .allowsHitTesting(false)
@@ -520,30 +561,55 @@ private struct BackgroundStudioView: View {
                 }
 
                 Button {
-                    Task { await model.create() }
+                    Task { await model.generateWithImagePlayground() }
                 } label: {
                     HStack {
-                        if model.state == .understanding || model.state == .generating {
+                        if model.state == .understanding {
                             ProgressView().controlSize(.small)
                         }
-                        Label(createButtonTitle, systemImage: "sparkles")
+                        Label(playgroundButtonTitle, systemImage: "apple.intelligence")
                     }
                     .frame(maxWidth: .infinity, minHeight: 42)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(!model.canCreate)
+                .disabled(!model.canCreate || !supportsImagePlayground)
 
                 if model.hasBaseImage {
+                    Button {
+                        Task { await model.create() }
+                    } label: {
+                        Label("Quick Private Edit", systemImage: "slider.horizontal.3")
+                            .frame(maxWidth: .infinity, minHeight: 34)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(!model.canCreate)
+
                     Button("Use Image as Background", systemImage: "display", action: model.useBaseImage)
                         .buttonStyle(.bordered)
                         .controlSize(.large)
                         .frame(maxWidth: .infinity)
                         .disabled(model.state == .understanding || model.state == .generating)
+                } else {
+                    Button {
+                        Task { await model.create() }
+                    } label: {
+                        Label("Create Abstract Privately", systemImage: "circle.hexagongrid")
+                            .frame(maxWidth: .infinity, minHeight: 34)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(!model.canCreate)
                 }
 
                 Label(generationDisclosure, systemImage: "lock.shield")
                     .font(.caption).foregroundStyle(.secondary)
+
+                if !supportsImagePlayground {
+                    Label("Image Playground is unavailable. Check Apple Intelligence and image generation in System Settings.", systemImage: "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(.orange)
+                }
             }
             .padding(28)
         }
@@ -586,20 +652,42 @@ private struct BackgroundStudioView: View {
         .accessibilityLabel(model.createdImageURL == nil ? "Background preview, empty" : "Created background preview")
     }
 
-    private var createButtonTitle: String {
+    private var playgroundButtonTitle: String {
         switch model.state {
         case .understanding: "Understanding your idea…"
-        case .generating: "Creating your background…"
-        default: model.hasBaseImage ? "Transform This Image" : "Create Abstract Background"
+        default: model.hasBaseImage ? "Reimagine in Image Playground" : "Generate with Image Playground"
         }
     }
 
     private var generationDisclosure: String {
         if #available(macOS 27.0, *) {
-            return model.hasBaseImage
-                ? "Private on-device edit. Daylight preserves your image and applies requested tone, color, contrast, or blur changes."
-                : "On macOS 27, Apple no longer allows hidden Image Playground generation. Text-only results are abstract and stay on this Mac."
+            return "macOS 27 requires Apple’s secure Image Playground sheet for full generation. Apple manages privacy, styles, availability, and usage limits."
         }
-        return "Your prompt and references stay inside Apple’s on-device Image Playground service."
+        return "Image Playground uses Apple Intelligence and returns only the image you approve to Daylight."
+    }
+
+    @ViewBuilder
+    private func playgroundPresenter<Content: View>(_ content: Content) -> some View {
+        if #available(macOS 15.1, *) {
+            if let sourceURL = model.sourceImageURL {
+                content.imagePlaygroundSheet(
+                    isPresented: $model.presentsImagePlayground,
+                    concept: model.refinedConcept,
+                    sourceImageURL: sourceURL,
+                    onCompletion: model.receivePlaygroundImage,
+                    onCancellation: model.cancelImagePlayground
+                )
+            } else {
+                content.imagePlaygroundSheet(
+                    isPresented: $model.presentsImagePlayground,
+                    concept: model.refinedConcept,
+                    sourceImage: nil,
+                    onCompletion: model.receivePlaygroundImage,
+                    onCancellation: model.cancelImagePlayground
+                )
+            }
+        } else {
+            content
+        }
     }
 }
