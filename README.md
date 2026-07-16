@@ -1,6 +1,6 @@
 # Daylight
 
-Daylight is a native macOS menu-bar app that places a live, glanceable Apple Calendar at the desktop layer. The calendar stays click-through during normal use and becomes editable from the menu bar or with **Control–Shift–T**.
+Daylight is a native Mac background studio powered by Apple Intelligence. Describe the background you want, add images or files for inspiration, create it with Apple Foundation Models and Image Playground, then apply it behind an optional live Apple Calendar overlay.
 
 ## Build
 
@@ -14,6 +14,10 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 
 ## Interaction
 
+- Choose **Create Background…** from the menu bar, or press **Command–B** while the calendar is interactive.
+- Add up to eight images, PDFs, text, RTF, or JSON references and describe the result you want.
+- Foundation Models turns your request and file notes into an art-directed concept; Image Playground creates the image and can transform your first image reference.
+- Preview the result, then choose **Apply Background** to use it on the desktop and Lock Screen.
 - Click the calendar icon in the menu bar to toggle interactive mode.
 - Press **Control–Shift–T** from any app to toggle interactive mode.
 - Choose **Week**, **Month**, or **Year** from the interaction toolbar or menu bar.
@@ -31,4 +35,10 @@ For a permission-free visual preview:
 
 ```sh
 open outputs/Daylight.app --args --demo --interactive
+```
+
+To open the background studio immediately while developing:
+
+```sh
+open outputs/Daylight.app --args --studio
 ```

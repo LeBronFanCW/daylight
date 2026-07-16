@@ -1,8 +1,11 @@
 <!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires updating signatures in appcasts that reference this file! This will involve re-running generate_appcast or sign_update.
 -->
-# Daylight 1.4.1
+# Daylight 2.0.0
 
-- Makes Launch at Login reliable on macOS beta builds where the native login-item service reports itself unavailable.
-- Keeps the native macOS login-item path as the first choice and automatically uses a user LaunchAgent only when needed.
-- Keeps intentional Quit behavior predictable; Daylight starts again at sign-in, not immediately after you quit.
+- Rebuilds Daylight around creating custom Mac backgrounds.
+- Adds a Create Background studio with prompts, image references, and file attachments.
+- Uses Apple Foundation Models to refine the visual direction on supported macOS 26 and 27 Macs.
+- Uses Image Playground to generate or transform the final image with Apple Intelligence.
+- Adds a full preview and one-click Apply Background action for the desktop and Lock Screen.
+- Keeps the live Apple Calendar as an optional interactive overlay on the created background.

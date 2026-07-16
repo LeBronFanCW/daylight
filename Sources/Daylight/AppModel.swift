@@ -14,6 +14,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var appearanceMode: DaylightAppearance
     @Published private(set) var viewMode: CalendarViewMode
     @Published private(set) var referenceDate: Date = Date()
+    @Published private(set) var customBackgroundURL: URL?
 
     let isDemoMode: Bool
     private let calendarService: CalendarService
@@ -27,6 +28,7 @@ final class AppModel: ObservableObject {
         let arguments = ProcessInfo.processInfo.arguments
         let savedAppearance = DaylightAppearance(rawValue: defaults.string(forKey: "daylight.appearance") ?? "")
         let savedView = CalendarViewMode(rawValue: defaults.string(forKey: "daylight.viewMode") ?? "")
+        customBackgroundURL = defaults.string(forKey: "daylight.customBackgroundURL").map { URL(fileURLWithPath: $0) }
         if arguments.contains("--light") {
             appearanceMode = .light
         } else if arguments.contains("--dark") {
@@ -91,6 +93,12 @@ final class AppModel: ObservableObject {
 
     func toggleAppearance() {
         setAppearance(appearanceMode == .light ? .dark : .light)
+    }
+
+    func setCustomBackground(_ url: URL) {
+        customBackgroundURL = url
+        defaults.set(url.path, forKey: "daylight.customBackgroundURL")
+        showNotice("New background applied")
     }
 
     func selectViewMode(_ mode: CalendarViewMode, focus date: Date? = nil) {

@@ -16,12 +16,7 @@ struct DesktopCalendarView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [palette.canvasTop, palette.canvasBottom],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            background
 
             ambientTexture
 
@@ -56,6 +51,25 @@ struct DesktopCalendarView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Daylight \(model.viewMode.title.lowercased()) calendar")
+    }
+
+    @ViewBuilder
+    private var background: some View {
+        if let url = model.customBackgroundURL, let image = NSImage(contentsOf: url) {
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            (palette.isLight ? Color.white.opacity(0.62) : Color.black.opacity(0.52))
+                .ignoresSafeArea()
+        } else {
+            LinearGradient(
+                colors: [palette.canvasTop, palette.canvasBottom],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+        }
     }
 
     private var ambientTexture: some View {
@@ -305,6 +319,14 @@ private struct InteractionToolbar: View {
                 .frame(width: 260)
 
                 Spacer()
+
+                Button {
+                    NotificationCenter.default.post(name: .daylightShowBackgroundStudio, object: nil)
+                } label: {
+                    Label("Create", systemImage: "sparkles")
+                }
+                .buttonStyle(.bordered)
+                .keyboardShortcut("b", modifiers: [.command])
 
                 Button {
                     model.toggleAppearance()

@@ -28,6 +28,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var lockScreenManager = LockScreenWallpaperManager(model: model)
     private var desktopWindowController: DesktopWindowController?
     private var hotKeyManager: HotKeyManager?
+    private lazy var backgroundStudioController = BackgroundStudioWindowController(
+        appModel: model,
+        lockScreenManager: lockScreenManager
+    )
+    private var studioObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -42,12 +47,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeyManager = hotKey
         hotKey.register()
         launchAtLoginManager.start()
+        studioObserver = NotificationCenter.default.addObserver(
+            forName: .daylightShowBackgroundStudio,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.showBackgroundStudio() }
+        }
 
         Task {
             await model.start()
             lockScreenManager.start()
         }
+
+        if ProcessInfo.processInfo.arguments.contains("--studio") {
+            DispatchQueue.main.async { [weak self] in self?.showBackgroundStudio() }
+        }
     }
+
+    func showBackgroundStudio() {
+        backgroundStudioController.show()
+    }
+}
+
+extension Notification.Name {
+    static let daylightShowBackgroundStudio = Notification.Name("daylight.showBackgroundStudio")
 }
 
 private struct MenuBarLabel: View {
@@ -81,6 +105,15 @@ private struct MenuBarContent: View {
     @ObservedObject var launchAtLoginManager: LaunchAtLoginManager
 
     var body: some View {
+        Button {
+            NotificationCenter.default.post(name: .daylightShowBackgroundStudio, object: nil)
+        } label: {
+            Label("Create Background…", systemImage: "sparkles")
+        }
+        .keyboardShortcut("b", modifiers: [.command])
+
+        Divider()
+
         Button {
             model.toggleInteractiveMode()
         } label: {
