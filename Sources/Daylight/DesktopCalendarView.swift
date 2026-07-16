@@ -416,7 +416,7 @@ private struct MonthCalendarView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                ForEach(weekdaySymbols, id: \.self) { symbol in
+                ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                     Text(symbol.uppercased())
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                         .tracking(1)
@@ -574,7 +574,7 @@ private struct MiniMonthView: View {
                 }
 
                 HStack(spacing: 0) {
-                    ForEach(weekdaySymbols, id: \.self) { symbol in
+                    ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
                             .font(.system(size: 7, weight: .bold, design: .rounded))
                             .foregroundStyle(palette.quietInk)

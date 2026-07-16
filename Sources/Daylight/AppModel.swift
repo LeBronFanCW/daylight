@@ -68,6 +68,10 @@ final class AppModel: ObservableObject {
         authorization = calendarService.authorization
         if authorization == .fullAccess {
             await refresh()
+        } else if authorization == .notDetermined && !isInteractive {
+            NSApp.activate(ignoringOtherApps: true)
+            isInteractive = true
+            showNotice("Connect Apple Calendar to get started")
         }
     }
 
