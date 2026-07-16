@@ -7,7 +7,11 @@ struct DaylightApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarContent(model: appDelegate.model, updateManager: appDelegate.updateManager)
+            MenuBarContent(
+                model: appDelegate.model,
+                updateManager: appDelegate.updateManager,
+                lockScreenManager: appDelegate.lockScreenManager
+            )
         } label: {
             MenuBarLabel(model: appDelegate.model, updateManager: appDelegate.updateManager)
         }
@@ -19,6 +23,7 @@ struct DaylightApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppModel()
     let updateManager = UpdateManager()
+    lazy var lockScreenManager = LockScreenWallpaperManager(model: model)
     private var desktopWindowController: DesktopWindowController?
     private var hotKeyManager: HotKeyManager?
 
@@ -35,7 +40,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeyManager = hotKey
         hotKey.register()
 
-        Task { await model.start() }
+        Task {
+            await model.start()
+            lockScreenManager.start()
+        }
     }
 }
 
@@ -66,6 +74,7 @@ private struct MenuBarLabel: View {
 private struct MenuBarContent: View {
     @ObservedObject var model: AppModel
     @ObservedObject var updateManager: UpdateManager
+    @ObservedObject var lockScreenManager: LockScreenWallpaperManager
 
     var body: some View {
         Button {
@@ -100,6 +109,30 @@ private struct MenuBarContent: View {
                         systemImage: model.appearanceMode == appearance ? "checkmark" : appearance.symbol
                     )
                 }
+            }
+        }
+
+        Menu("Lock Screen") {
+            Toggle("Show Daylight on Lock Screen", isOn: Binding(
+                get: { lockScreenManager.isEnabled },
+                set: { lockScreenManager.setEnabled($0) }
+            ))
+
+            Toggle("Show Event Titles", isOn: Binding(
+                get: { !lockScreenManager.hidesEventTitles },
+                set: { lockScreenManager.setShowsEventTitles($0) }
+            ))
+            .disabled(!lockScreenManager.isEnabled)
+
+            Button("Refresh Snapshot") {
+                lockScreenManager.refreshNow()
+            }
+            .disabled(!lockScreenManager.isEnabled || lockScreenManager.isRefreshing)
+
+            if let error = lockScreenManager.lastError {
+                Text(error)
+            } else {
+                Text("Read-only snapshot · titles hidden by default")
             }
         }
 

@@ -2,10 +2,17 @@ import SwiftUI
 
 struct DesktopCalendarView: View {
     @ObservedObject var model: AppModel
+    let renderingMode: CalendarRenderingMode
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let calendar = Calendar.current
     private var palette: DaylightPalette { model.appearanceMode.palette }
+    private var isInteractive: Bool { model.isInteractive && !renderingMode.isLockScreen }
+
+    init(model: AppModel, renderingMode: CalendarRenderingMode = .live) {
+        self.model = model
+        self.renderingMode = renderingMode
+    }
 
     var body: some View {
         ZStack {
@@ -21,7 +28,7 @@ struct DesktopCalendarView: View {
             VStack(spacing: 0) {
                 header
 
-                if model.isInteractive && model.authorization == .fullAccess {
+                if isInteractive && model.authorization == .fullAccess {
                     InteractionToolbar(model: model)
                         .padding(.bottom, 16)
                         .transition(.move(edge: .top).combined(with: .opacity))
@@ -33,7 +40,7 @@ struct DesktopCalendarView: View {
             .padding(.top, 34)
             .padding(.bottom, 28)
 
-            if let notice = model.notice {
+            if !renderingMode.isLockScreen, let notice = model.notice {
                 noticeView(notice)
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
             }
@@ -90,7 +97,7 @@ struct DesktopCalendarView: View {
             }
             .accessibilityElement(children: .combine)
         }
-        .padding(.bottom, model.isInteractive && model.authorization == .fullAccess ? 14 : 24)
+        .padding(.bottom, isInteractive && model.authorization == .fullAccess ? 14 : 24)
     }
 
     @ViewBuilder
@@ -99,10 +106,18 @@ struct DesktopCalendarView: View {
         case .fullAccess:
             switch model.viewMode {
             case .week:
-                WeekCalendarView(model: model)
+                WeekCalendarView(
+                    model: model,
+                    isInteractive: isInteractive,
+                    redactsEventTitles: renderingMode.hidesEventTitles
+                )
                     .transition(.opacity)
             case .month:
-                MonthCalendarView(model: model)
+                MonthCalendarView(
+                    model: model,
+                    isInteractive: isInteractive,
+                    redactsEventTitles: renderingMode.hidesEventTitles
+                )
                     .transition(.opacity)
             case .year:
                 YearCalendarView(model: model)
@@ -144,7 +159,7 @@ struct DesktopCalendarView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 480)
 
-            if model.isInteractive {
+            if isInteractive {
                 HStack(spacing: 10) {
                     Button {
                         if model.authorization == .denied {
@@ -340,6 +355,8 @@ private struct InteractionToolbar: View {
 
 private struct WeekCalendarView: View {
     @ObservedObject var model: AppModel
+    let isInteractive: Bool
+    let redactsEventTitles: Bool
     @Environment(\.daylightPalette) private var palette
     private let calendar = Calendar.current
 
@@ -350,7 +367,8 @@ private struct WeekCalendarView: View {
                     day: day,
                     events: CalendarGrouping.events(on: day, from: model.events),
                     isToday: calendar.isDateInToday(day),
-                    isInteractive: model.isInteractive,
+                    isInteractive: isInteractive,
+                    redactsEventTitles: redactsEventTitles,
                     onAdd: { model.presentNewEvent(on: day) },
                     onSelect: { model.presentEditor(for: $0) }
                 )
@@ -364,6 +382,8 @@ private struct WeekCalendarView: View {
 
 private struct MonthCalendarView: View {
     @ObservedObject var model: AppModel
+    let isInteractive: Bool
+    let redactsEventTitles: Bool
     @Environment(\.daylightPalette) private var palette
     private let calendar = Calendar.current
 
@@ -396,7 +416,8 @@ private struct MonthCalendarView: View {
                             day: day,
                             displayedMonth: model.referenceDate,
                             events: CalendarGrouping.events(on: day, from: model.events),
-                            isInteractive: model.isInteractive,
+                            isInteractive: isInteractive,
+                            redactsEventTitles: redactsEventTitles,
                             onAdd: { model.presentNewEvent(on: day) },
                             onSelect: { model.presentEditor(for: $0) }
                         )
@@ -419,6 +440,7 @@ private struct MonthDayCell: View {
     let displayedMonth: Date
     let events: [CalendarEvent]
     let isInteractive: Bool
+    let redactsEventTitles: Bool
     let onAdd: () -> Void
     let onSelect: (CalendarEvent) -> Void
 
@@ -457,7 +479,7 @@ private struct MonthDayCell: View {
                 } label: {
                     HStack(spacing: 6) {
                         Circle().fill(event.color.swiftUIColor).frame(width: 6, height: 6)
-                        Text(event.title)
+                        Text(redactsEventTitles ? "Busy" : event.title)
                             .lineLimit(1)
                         Spacer(minLength: 0)
                     }
@@ -468,7 +490,7 @@ private struct MonthDayCell: View {
                     .background(event.color.swiftUIColor.opacity(palette.isLight ? 0.14 : 0.11), in: RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(event.title), \(event.startDate.formatted(date: .omitted, time: .shortened))")
+                .accessibilityLabel("\(redactsEventTitles ? "Busy" : event.title), \(event.startDate.formatted(date: .omitted, time: .shortened))")
                 .accessibilityHint(isInteractive && event.isEditable ? "Opens event editor" : "")
             }
 
@@ -585,6 +607,7 @@ private struct DayColumn: View {
     let events: [CalendarEvent]
     let isToday: Bool
     let isInteractive: Bool
+    let redactsEventTitles: Bool
     let onAdd: () -> Void
     let onSelect: (CalendarEvent) -> Void
 
@@ -604,7 +627,11 @@ private struct DayColumn: View {
                 ScrollView {
                     LazyVStack(spacing: 10) {
                         ForEach(events) { event in
-                            EventCard(event: event, isInteractive: isInteractive) {
+                            EventCard(
+                                event: event,
+                                isInteractive: isInteractive,
+                                redactsEventTitle: redactsEventTitles
+                            ) {
                                 onSelect(event)
                             }
                         }
@@ -666,6 +693,7 @@ private struct DayColumn: View {
 private struct EventCard: View {
     let event: CalendarEvent
     let isInteractive: Bool
+    let redactsEventTitle: Bool
     let action: () -> Void
 
     @Environment(\.daylightPalette) private var palette
@@ -677,7 +705,7 @@ private struct EventCard: View {
                     .fill(event.color.swiftUIColor)
                     .frame(width: 3)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(event.title)
+                    Text(redactsEventTitle ? "Busy" : event.title)
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(palette.ink)
                         .lineLimit(2)
@@ -685,7 +713,7 @@ private struct EventCard: View {
                     HStack(spacing: 5) {
                         Text(timeText)
                         Text("·")
-                        Text(event.calendarTitle).lineLimit(1)
+                        Text(redactsEventTitle ? "Private" : event.calendarTitle).lineLimit(1)
                     }
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundStyle(palette.secondaryInk)
@@ -707,7 +735,7 @@ private struct EventCard: View {
         }
         .buttonStyle(EventCardButtonStyle(isEnabled: isInteractive && event.isEditable))
         .disabled(!isInteractive || !event.isEditable)
-        .accessibilityLabel("\(event.title), \(timeText), \(event.calendarTitle)")
+        .accessibilityLabel(redactsEventTitle ? "Busy, \(timeText)" : "\(event.title), \(timeText), \(event.calendarTitle)")
         .accessibilityHint(isInteractive && event.isEditable ? "Opens event editor" : "")
     }
 

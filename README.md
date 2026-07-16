@@ -21,6 +21,7 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 - Switch between the warm **Light** appearance and the original **Dark** appearance; Daylight remembers your choice.
 - In interactive mode, click an event to edit it or use **New event**.
 - Press Escape or click **Done** to return the calendar to the background.
+- Daylight renders a read-only calendar snapshot as your Mac wallpaper so it also appears on the Lock Screen. Event titles are hidden by default; use the **Lock Screen** menu to reveal them, refresh the snapshot, turn the feature off, or restore your previous wallpaper.
 - Daylight checks for signed updates once a day and can install them automatically. Use **Check for Updates…** in the menu bar to check immediately.
 
 ## Preview mode

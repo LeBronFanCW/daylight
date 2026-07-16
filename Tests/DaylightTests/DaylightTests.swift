@@ -3,6 +3,14 @@ import XCTest
 @testable import Daylight
 
 final class DaylightTests: XCTestCase {
+    func testLockScreenRenderingDefaultsToRedactingEventTitles() {
+        let mode = CalendarRenderingMode.lockScreen(hideEventTitles: true)
+
+        XCTAssertTrue(mode.isLockScreen)
+        XCTAssertTrue(mode.hidesEventTitles)
+        XCTAssertFalse(CalendarRenderingMode.live.isLockScreen)
+    }
+
     @MainActor
     func testDesktopWindowCanReceiveFocus() {
         let window = DesktopWindow(

@@ -39,6 +39,21 @@ enum DaylightAppearance: String, CaseIterable, Identifiable {
     var symbol: String { self == .light ? "sun.max" : "moon.stars" }
 }
 
+enum CalendarRenderingMode: Equatable {
+    case live
+    case lockScreen(hideEventTitles: Bool)
+
+    var isLockScreen: Bool {
+        if case .lockScreen = self { return true }
+        return false
+    }
+
+    var hidesEventTitles: Bool {
+        if case let .lockScreen(hideEventTitles) = self { return hideEventTitles }
+        return false
+    }
+}
+
 struct EventColor: Hashable, Sendable {
     var red: Double
     var green: Double
