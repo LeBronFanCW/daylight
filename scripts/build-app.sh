@@ -3,7 +3,10 @@ set -euo pipefail
 
 ROOT="${0:A:h:h}"
 OUTPUT_DIR="$ROOT/outputs"
-APP="$OUTPUT_DIR/Daylight.app"
+OUTPUT_APP="$OUTPUT_DIR/Daylight.app"
+STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/daylight-build.XXXXXX")"
+APP="$STAGING_DIR/Daylight.app"
+trap 'rm -rf "$STAGING_DIR"' EXIT
 
 cd "$ROOT"
 swift build -c release --product Daylight
@@ -45,4 +48,7 @@ codesign --force --deep --sign - \
 xattr -cr "$APP"
 codesign --verify --deep "$APP"
 
-echo "$APP"
+rm -rf "$OUTPUT_APP"
+ditto --norsrc --noextattr --noqtn --noacl "$APP" "$OUTPUT_APP"
+
+echo "$OUTPUT_APP"

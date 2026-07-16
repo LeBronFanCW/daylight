@@ -10,7 +10,8 @@ struct DaylightApp: App {
             MenuBarContent(
                 model: appDelegate.model,
                 updateManager: appDelegate.updateManager,
-                lockScreenManager: appDelegate.lockScreenManager
+                lockScreenManager: appDelegate.lockScreenManager,
+                launchAtLoginManager: appDelegate.launchAtLoginManager
             )
         } label: {
             MenuBarLabel(model: appDelegate.model, updateManager: appDelegate.updateManager)
@@ -23,6 +24,7 @@ struct DaylightApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppModel()
     let updateManager = UpdateManager()
+    let launchAtLoginManager = LaunchAtLoginManager()
     lazy var lockScreenManager = LockScreenWallpaperManager(model: model)
     private var desktopWindowController: DesktopWindowController?
     private var hotKeyManager: HotKeyManager?
@@ -39,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hotKeyManager = hotKey
         hotKey.register()
+        launchAtLoginManager.start()
 
         Task {
             await model.start()
@@ -75,6 +78,7 @@ private struct MenuBarContent: View {
     @ObservedObject var model: AppModel
     @ObservedObject var updateManager: UpdateManager
     @ObservedObject var lockScreenManager: LockScreenWallpaperManager
+    @ObservedObject var launchAtLoginManager: LaunchAtLoginManager
 
     var body: some View {
         Button {
@@ -163,6 +167,22 @@ private struct MenuBarContent: View {
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Calendar.app"))
         } label: {
             Label("Open Apple Calendar", systemImage: "arrow.up.forward.app")
+        }
+
+        Divider()
+
+        Toggle("Launch Daylight at Login", isOn: Binding(
+            get: { launchAtLoginManager.desiredEnabled },
+            set: { launchAtLoginManager.setEnabled($0) }
+        ))
+
+        if launchAtLoginManager.requiresApproval {
+            Button("Approve in Login Item Settings…") {
+                launchAtLoginManager.openLoginItemSettings()
+            }
+            Text("macOS approval is required before Daylight can start automatically.")
+        } else if let error = launchAtLoginManager.lastError {
+            Text(error)
         }
 
         Divider()

@@ -3,6 +3,25 @@ import XCTest
 @testable import Daylight
 
 final class DaylightTests: XCTestCase {
+    func testLaunchAtLoginRegistersOnlyWhenWantedAndMissing() {
+        XCTAssertEqual(
+            LaunchAtLoginDecision.action(desiredEnabled: true, status: .notRegistered),
+            .register
+        )
+        XCTAssertEqual(
+            LaunchAtLoginDecision.action(desiredEnabled: true, status: .enabled),
+            .none
+        )
+        XCTAssertEqual(
+            LaunchAtLoginDecision.action(desiredEnabled: false, status: .enabled),
+            .unregister
+        )
+        XCTAssertEqual(
+            LaunchAtLoginDecision.action(desiredEnabled: true, status: .requiresApproval),
+            .none
+        )
+    }
+
     func testLockScreenRenderingDefaultsToRedactingEventTitles() {
         let mode = CalendarRenderingMode.lockScreen(hideEventTitles: true)
 

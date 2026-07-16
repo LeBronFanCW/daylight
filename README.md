@@ -23,6 +23,7 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 - Press Escape or click **Done** to return the calendar to the background.
 - Daylight renders a read-only calendar snapshot as your Mac wallpaper so it also appears on the Lock Screen. Event titles are hidden by default; use the **Lock Screen** menu to reveal them, refresh the snapshot, turn the feature off, or restore your previous wallpaper.
 - Daylight checks for signed updates once a day and can install them automatically. Use **Check for Updates…** in the menu bar to check immediately.
+- Daylight enables **Launch at Login** by default so your calendar returns automatically after signing in or restarting. You can turn it off from the menu bar at any time.
 
 ## Preview mode
 
