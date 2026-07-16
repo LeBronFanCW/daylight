@@ -1,6 +1,7 @@
-# Daylight 2.0.2
+# Daylight 2.1.0
 
-- Fixes the installed app being left in internal demo mode after testing.
-- Opens the first-run Calendar connection screen interactively so its Connect button works immediately.
-- Removes duplicate weekday identifiers that could cause undefined SwiftUI updates.
-- Keeps private, in-app background creation and the immediate Create window from 2.0.1.
+- Makes the first selected image the clearly labeled base image.
+- Adds a one-click Use Image as Background action that preserves the original image.
+- Makes Transform This Image edit the selected image instead of covering it with unrelated abstract shapes.
+- Supports requested brightness, mood, contrast, saturation, monochrome, warmth, and blur changes privately on macOS 27.
+- Labels text-only macOS 27 creation honestly as abstract because Apple removed hidden Image Playground generation.

@@ -1,4 +1,6 @@
 import AppKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
 import Foundation
 import ImagePlayground
 import PDFKit
@@ -12,8 +14,7 @@ struct BackgroundReference: Identifiable, Equatable {
     let id: UUID
     let url: URL
     let isImage: Bool
-
-    var name: String { url.lastPathComponent }
+    let name: String
 }
 
 enum BackgroundCreationState: Equatable {
@@ -51,6 +52,8 @@ final class BackgroundStudioModel: ObservableObject {
         references.first(where: \.isImage)?.url
     }
 
+    var hasBaseImage: Bool { sourceImageURL != nil }
+
     func addReferences() {
         let panel = NSOpenPanel()
         panel.title = "Add inspiration"
@@ -84,7 +87,7 @@ final class BackgroundStudioModel: ObservableObject {
             let context = try textContext()
             refinedConcept = try await refineConcept(userPrompt: prompt, textContext: context)
             state = .generating
-            try await generateBackground(concept: refinedConcept)
+            try await generateBackground(concept: refinedConcept, instructions: prompt)
             state = .ready
         } catch {
             if error is CancellationError { return }
@@ -98,6 +101,19 @@ final class BackgroundStudioModel: ObservableObject {
         lockScreenManager.setEnabled(true)
         lockScreenManager.refreshNow()
         state = .ready
+    }
+
+    func useBaseImage() {
+        guard let sourceImageURL else { return }
+        state = .generating
+        createdImageURL = nil
+        do {
+            try renderTransformedSource(at: sourceImageURL, instructions: "keep the original image unchanged")
+            refinedConcept = "Original image, fitted to the Mac display without decorative overlays."
+            state = .ready
+        } catch {
+            state = .failed(error.localizedDescription)
+        }
     }
 
     private func importReference(_ originalURL: URL) throws {
@@ -114,7 +130,12 @@ final class BackgroundStudioModel: ObservableObject {
         let ext = originalURL.pathExtension.isEmpty ? "data" : originalURL.pathExtension
         let destination = importsDirectory.appendingPathComponent("\(UUID().uuidString).\(ext)")
         try FileManager.default.copyItem(at: originalURL, to: destination)
-        references.append(BackgroundReference(id: UUID(), url: destination, isImage: type.conforms(to: .image)))
+        references.append(BackgroundReference(
+            id: UUID(),
+            url: destination,
+            isImage: type.conforms(to: .image),
+            name: originalURL.lastPathComponent
+        ))
     }
 
     private func textContext() throws -> String {
@@ -165,9 +186,9 @@ final class BackgroundStudioModel: ObservableObject {
         return "Create a spacious Mac wallpaper inspired by the supplied image, with balanced composition and room for desktop icons."
     }
 
-    private func generateBackground(concept: String) async throws {
+    private func generateBackground(concept: String, instructions: String) async throws {
         if #available(macOS 27.0, *) {
-            try renderPrivateBackground(concept: concept)
+            try renderPrivateBackground(concept: concept, instructions: instructions)
             return
         }
 
@@ -194,7 +215,12 @@ final class BackgroundStudioModel: ObservableObject {
         throw StudioError.noImageCreated
     }
 
-    private func renderPrivateBackground(concept: String) throws {
+    private func renderPrivateBackground(concept: String, instructions: String) throws {
+        if let sourceImageURL {
+            try renderTransformedSource(at: sourceImageURL, instructions: instructions)
+            return
+        }
+
         let size = NSSize(width: 2880, height: 1800)
         let image = NSImage(size: size)
         image.lockFocus()
@@ -203,16 +229,7 @@ final class BackgroundStudioModel: ObservableObject {
         let bounds = NSRect(origin: .zero, size: size)
         let palette = wallpaperPalette(for: concept)
 
-        if let sourceImageURL, let source = NSImage(contentsOf: sourceImageURL) {
-            source.draw(in: aspectFillRect(for: source.size, inside: bounds),
-                        from: .zero,
-                        operation: .sourceOver,
-                        fraction: 1)
-            palette[0].withAlphaComponent(0.32).setFill()
-            bounds.fill()
-        } else {
-            NSGradient(colors: [palette[0], palette[1], palette[2]])?.draw(in: bounds, angle: -22)
-        }
+        NSGradient(colors: [palette[0], palette[1], palette[2]])?.draw(in: bounds, angle: -22)
 
         let seed = stableSeed(for: concept)
         for index in 0..<5 {
@@ -243,6 +260,57 @@ final class BackgroundStudioModel: ObservableObject {
         try saveCreatedImageData(data)
     }
 
+    private func renderTransformedSource(at url: URL, instructions: String) throws {
+        guard var image = CIImage(contentsOf: url) else { throw StudioError.imageEncodingFailed }
+        let target = CGRect(x: 0, y: 0, width: 2880, height: 1800)
+        let lower = instructions.lowercased()
+        let preserveOriginal = lower.isEmpty
+            || lower.contains("unchanged")
+            || lower.contains("as is")
+            || lower.contains("use this image")
+            || lower.contains("original")
+
+        let scale = max(target.width / image.extent.width, target.height / image.extent.height)
+        image = image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        let translatedX = target.midX - image.extent.midX
+        let translatedY = target.midY - image.extent.midY
+        image = image.transformed(by: CGAffineTransform(translationX: translatedX, y: translatedY))
+
+        if !preserveOriginal {
+            let controls = CIFilter.colorControls()
+            controls.inputImage = image
+            controls.brightness = lower.contains("bright") || lower.contains("sunlit") ? 0.10
+                : (lower.contains("dark") || lower.contains("moody") || lower.contains("night") ? -0.16 : 0)
+            controls.contrast = lower.contains("high contrast") || lower.contains("dramatic") ? 1.18
+                : (lower.contains("soft contrast") || lower.contains("low contrast") ? 0.88 : 1)
+            controls.saturation = lower.contains("black and white") || lower.contains("monochrome") ? 0
+                : (lower.contains("vivid") || lower.contains("colorful") ? 1.28
+                    : (lower.contains("muted") || lower.contains("desaturated") ? 0.72 : 1))
+            image = controls.outputImage ?? image
+
+            if lower.contains("warm") || lower.contains("golden") || lower.contains("sepia") {
+                let sepia = CIFilter.sepiaTone()
+                sepia.inputImage = image
+                sepia.intensity = lower.contains("sepia") ? 0.72 : 0.22
+                image = sepia.outputImage ?? image
+            }
+
+            if lower.contains("blur") || lower.contains("dreamy") || lower.contains("soft focus") {
+                let blur = CIFilter.gaussianBlur()
+                blur.inputImage = image.clampedToExtent()
+                blur.radius = lower.contains("slight") ? 4 : 12
+                image = (blur.outputImage ?? image).cropped(to: target)
+            }
+        }
+
+        image = image.cropped(to: target)
+        let context = CIContext(options: [.cacheIntermediates: false])
+        guard let cgImage = context.createCGImage(image, from: target) else {
+            throw StudioError.imageEncodingFailed
+        }
+        try saveCreatedImage(cgImage)
+    }
+
     private func wallpaperPalette(for concept: String) -> [NSColor] {
         let words = concept.lowercased()
         if words.contains("desert") || words.contains("peach") || words.contains("sunset") {
@@ -258,16 +326,6 @@ final class BackgroundStudioModel: ObservableObject {
             return [NSColor(hex: 0x080A18), NSColor(hex: 0x26234F), NSColor(hex: 0x784C9E), NSColor(hex: 0xDA7C8C)]
         }
         return [NSColor(hex: 0x18243A), NSColor(hex: 0x4F6E86), NSColor(hex: 0xD38A68), NSColor(hex: 0xE8C79A)]
-    }
-
-    private func aspectFillRect(for imageSize: NSSize, inside bounds: NSRect) -> NSRect {
-        guard imageSize.width > 0, imageSize.height > 0 else { return bounds }
-        let scale = max(bounds.width / imageSize.width, bounds.height / imageSize.height)
-        let scaled = NSSize(width: imageSize.width * scale, height: imageSize.height * scale)
-        return NSRect(x: bounds.midX - scaled.width / 2,
-                      y: bounds.midY - scaled.height / 2,
-                      width: scaled.width,
-                      height: scaled.height)
     }
 
     private func stableSeed(for text: String) -> UInt64 {
@@ -386,42 +444,64 @@ private struct BackgroundStudioView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Create a background")
                         .font(.system(size: 28, weight: .semibold, design: .rounded))
-                    Text("Describe the feeling. Add files for context or an image to transform.")
+                    Text("Choose a base image, then describe only the changes you want. Or create a new abstract wallpaper from words.")
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("YOUR IDEA").font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(.secondary)
-                    TextEditor(text: $model.prompt)
-                        .font(.body)
-                        .frame(minHeight: 132)
-                        .padding(10)
-                        .scrollContentBackground(.hidden)
-                        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay { RoundedRectangle(cornerRadius: 14).stroke(.separator.opacity(0.55)) }
-                        .accessibilityLabel("Describe your background")
+                    Text(model.hasBaseImage ? "WHAT SHOULD CHANGE?" : "YOUR IDEA")
+                        .font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(.secondary)
+                    ZStack(alignment: .topLeading) {
+                        if model.prompt.isEmpty {
+                            Text(model.hasBaseImage
+                                 ? "Example: make it warmer, darker, monochrome, vivid, or softly blurred."
+                                 : "Describe the colors, atmosphere, and composition for an abstract wallpaper.")
+                                .font(.body).foregroundStyle(.tertiary)
+                                .padding(.horizontal, 15).padding(.vertical, 18)
+                                .allowsHitTesting(false)
+                        }
+                        TextEditor(text: $model.prompt)
+                            .font(.body)
+                            .frame(minHeight: 132)
+                            .padding(10)
+                            .scrollContentBackground(.hidden)
+                            .accessibilityLabel(model.hasBaseImage ? "Describe changes to the base image" : "Describe your background")
+                    }
+                    .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay { RoundedRectangle(cornerRadius: 14).stroke(.separator.opacity(0.55)) }
                 }
 
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text("INSPIRATION").font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(.secondary)
+                    Text("BASE IMAGE & REFERENCES").font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(.secondary)
                         Spacer()
                         Text("\(model.references.count)/8").font(.caption).foregroundStyle(.tertiary)
                     }
                     if model.references.isEmpty {
                         Button(action: model.addReferences) {
-                            Label("Add images or files", systemImage: "paperclip")
+                            Label("Choose a base image or add files", systemImage: "photo.badge.plus")
                                 .frame(maxWidth: .infinity, minHeight: 64)
                         }
                         .buttonStyle(.bordered)
                     } else {
                         ForEach(model.references) { reference in
                             HStack(spacing: 10) {
-                                Image(systemName: reference.isImage ? "photo" : "doc.text")
-                                    .frame(width: 28, height: 28)
-                                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
-                                Text(reference.name).lineLimit(1)
+                                if reference.isImage, let image = NSImage(contentsOf: reference.url) {
+                                    Image(nsImage: image)
+                                        .resizable().scaledToFill()
+                                        .frame(width: 54, height: 38)
+                                        .clipShape(RoundedRectangle(cornerRadius: 7))
+                                } else {
+                                    Image(systemName: "doc.text")
+                                        .frame(width: 28, height: 28)
+                                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(reference.name).lineLimit(1)
+                                    Text(reference.url == model.sourceImageURL ? "BASE IMAGE" : "REFERENCE")
+                                        .font(.caption2.weight(.bold)).foregroundStyle(.secondary)
+                                }
                                 Spacer()
                                 Button("Remove", systemImage: "xmark") { model.remove(reference) }
                                     .labelStyle(.iconOnly).buttonStyle(.borderless)
@@ -454,7 +534,15 @@ private struct BackgroundStudioView: View {
                 .controlSize(.large)
                 .disabled(!model.canCreate)
 
-                Label("Your idea stays inside Apple’s on-device models. Daylight creates the result without opening another app or sheet.", systemImage: "lock.shield")
+                if model.hasBaseImage {
+                    Button("Use Image as Background", systemImage: "display", action: model.useBaseImage)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity)
+                        .disabled(model.state == .understanding || model.state == .generating)
+                }
+
+                Label(generationDisclosure, systemImage: "lock.shield")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .padding(28)
@@ -502,7 +590,16 @@ private struct BackgroundStudioView: View {
         switch model.state {
         case .understanding: "Understanding your idea…"
         case .generating: "Creating your background…"
-        default: "Create with Apple Intelligence"
+        default: model.hasBaseImage ? "Transform This Image" : "Create Abstract Background"
         }
+    }
+
+    private var generationDisclosure: String {
+        if #available(macOS 27.0, *) {
+            return model.hasBaseImage
+                ? "Private on-device edit. Daylight preserves your image and applies requested tone, color, contrast, or blur changes."
+                : "On macOS 27, Apple no longer allows hidden Image Playground generation. Text-only results are abstract and stay on this Mac."
+        }
+        return "Your prompt and references stay inside Apple’s on-device Image Playground service."
     }
 }

@@ -1,6 +1,6 @@
 # Daylight
 
-Daylight is a native Mac background studio powered by Apple Intelligence. Describe the background you want, add images or files for inspiration, create it with Apple Foundation Models and Image Playground, then apply it behind an optional live Apple Calendar overlay.
+Daylight is a native Mac background studio powered by Apple Intelligence. Use an existing image as your background, transform it privately, or create an abstract wallpaper from words, then apply it behind an optional live Apple Calendar overlay.
 
 ## Build
 
@@ -15,8 +15,9 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 ## Interaction
 
 - Choose **Create Background…** from the menu bar, or press **Command–B** while the calendar is interactive.
-- Add up to eight images, PDFs, text, RTF, or JSON references and describe the result you want.
-- Foundation Models turns your request and file notes into an art-directed concept. On macOS 26, Daylight can route it to Image Playground in the background; on macOS 27, where Apple removed that hidden API, Daylight renders the concept privately inside the app and can incorporate your image references.
+- Choose an image to make it the base background. Use it unchanged, or describe supported tone, brightness, contrast, saturation, monochrome, warmth, and blur edits.
+- Add up to eight images, PDFs, text, RTF, or JSON references. The first image is always clearly labeled as the base image.
+- On macOS 26, Daylight can route prompts to Image Playground in the background. On macOS 27, where Apple removed that hidden API, image transformations happen privately inside Daylight and text-only creation is explicitly labeled as abstract.
 - Preview the result, then choose **Apply Background** to use it on the desktop and Lock Screen.
 - Click the calendar icon in the menu bar to toggle interactive mode.
 - Press **Control–Shift–T** from any app to toggle interactive mode.
