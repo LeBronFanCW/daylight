@@ -14,7 +14,13 @@ let package = Package(
         .executableTarget(
             name: "Daylight",
             dependencies: ["Sparkle"],
-            path: "Sources/Daylight"
+            path: "Sources/Daylight",
+            linkerSettings: [
+                .unsafeFlags([
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "@executable_path/../Frameworks"
+                ])
+            ]
         ),
         .testTarget(
             name: "DaylightTests",

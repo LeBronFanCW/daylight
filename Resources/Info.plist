@@ -30,6 +30,8 @@
     <true/>
     <key>SURequireSignedFeed</key>
     <true/>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
     <key>SUScheduledCheckInterval</key>
     <integer>86400</integer>
     <key>SUPublicEDKey</key>

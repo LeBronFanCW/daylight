@@ -1,6 +1,8 @@
-<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>Daylight</title>
         <item>
@@ -11,11 +13,12 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <sparkle:releaseNotesLink sparkle:edSignature="KESN6TuxNN0YXBcay+qf3gfl0jjEw0iuTqnUMZl9sfhjds5PkXvsnzLOCzf54rwikG8WcX9y2NTlkZUX7ch7DA==" sparkle:length="527">https://raw.githubusercontent.com/LeBronFanCW/daylight/main/Daylight-macOS.md</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v1.2.0/Daylight-macOS.zip" length="1899684" type="application/octet-stream" sparkle:edSignature="Tw22MZWN+QIaCHMdstdHUauyG/z1QQUmGxQyy3NuiWUthMKE++xDltymC8wXnhZX6HpsQB2o5SUPs7yBryCZAA=="></enclosure>
+            <sparkle:releaseNotesLink sparkle:edSignature="XAl+OvposDIFggcEWfKfZ6whsVfb0l1K5iQkrLOfo4R6s0cv7NlNAtcyQLpgztphSvVfXyIsVHU8KJHOK/1nDg==" sparkle:length="587">https://raw.githubusercontent.com/LeBronFanCW/daylight/main/Daylight-macOS.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v1.2.0/Daylight-macOS.zip" length="1818427" type="application/octet-stream" sparkle:edSignature="KsqylsddZgwk8WigGzuegl+A3A2EhiF7KEq+5+VKfed31F/vtbkHOVvz7Tw5xwrLhIlt7gIFpUjYri7XMTxFBg=="/>
         </item>
     </channel>
-</rss><!-- sparkle-signatures:
-edSignature: MBUGfym2kW7uelraouxIZY89SbXhAbxZrkqChNJT/vyeqts25RwloiCOBZ7fcDw3BueGM9gq+Q+JPfMSxqZDDA==
-length: 1463
+</rss>
+<!-- sparkle-signatures:
+edSignature: jw4s5dN6A75dOB1++TOxUvos8MIHCcHvElgIvc+iMPWjSDCtf5dCB4JKiZUZz6R7nMJ8L6exyGPASdmw9TAxAA==
+length: 1455
 -->

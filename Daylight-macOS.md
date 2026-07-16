@@ -5,5 +5,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
 
 - Adds secure automatic background update checks through GitHub Releases.
 - Adds **Check for Updates…** to the menu-bar menu.
+- Shows a menu-bar badge when a background update is ready.
 - Preserves the interaction-layer repair from Daylight 1.1.1.
 - Keeps Apple Calendar access sandboxed and limits network access to update checks.

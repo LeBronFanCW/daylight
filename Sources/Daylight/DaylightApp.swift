@@ -9,7 +9,7 @@ struct DaylightApp: App {
         MenuBarExtra {
             MenuBarContent(model: appDelegate.model, updateManager: appDelegate.updateManager)
         } label: {
-            MenuBarLabel(model: appDelegate.model)
+            MenuBarLabel(model: appDelegate.model, updateManager: appDelegate.updateManager)
         }
         .menuBarExtraStyle(.menu)
     }
@@ -41,10 +41,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 private struct MenuBarLabel: View {
     @ObservedObject var model: AppModel
+    @ObservedObject var updateManager: UpdateManager
 
     var body: some View {
-        Image(systemName: model.isInteractive ? "calendar.badge.checkmark" : "calendar")
-            .accessibilityLabel(model.isInteractive ? "Daylight interactive" : "Daylight passive")
+        Image(systemName: iconName)
+            .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var iconName: String {
+        if updateManager.updateAvailable {
+            return "calendar.badge.exclamationmark"
+        }
+        return model.isInteractive ? "calendar.badge.checkmark" : "calendar"
+    }
+
+    private var accessibilityLabel: String {
+        if updateManager.updateAvailable {
+            return "Daylight update available"
+        }
+        return model.isInteractive ? "Daylight interactive" : "Daylight passive"
     }
 }
 
@@ -119,7 +134,7 @@ private struct MenuBarContent: View {
 
         Divider()
 
-        Button("Check for Updates…") {
+        Button(updateManager.updateAvailable ? "Install Available Update…" : "Check for Updates…") {
             updateManager.checkForUpdates()
         }
         .disabled(!updateManager.canCheckForUpdates)

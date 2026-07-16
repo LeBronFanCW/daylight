@@ -42,5 +42,7 @@ xattr -cr "$APP"
 codesign --force --deep --sign - \
     --entitlements "$ROOT/Resources/Daylight.entitlements" \
     "$APP"
+xattr -cr "$APP"
+codesign --verify --deep --strict "$APP"
 
 echo "$APP"
