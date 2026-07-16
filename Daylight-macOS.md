@@ -1,11 +1,7 @@
-<!-- sparkle-sign-warning:
-IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires updating signatures in appcasts that reference this file! This will involve re-running generate_appcast or sign_update.
--->
-# Daylight 2.0.0
+# Daylight 2.0.1
 
-- Rebuilds Daylight around creating custom Mac backgrounds.
-- Adds a Create Background studio with prompts, image references, and file attachments.
-- Uses Apple Foundation Models to refine the visual direction on supported macOS 26 and 27 Macs.
-- Uses Image Playground to generate or transform the final image with Apple Intelligence.
-- Adds a full preview and one-click Apply Background action for the desktop and Lock Screen.
-- Keeps the live Apple Calendar as an optional interactive overlay on the created background.
+- Fixes Create Background opening behind the interactive calendar.
+- Keeps the studio above Daylight so it appears immediately when Create is clicked.
+- Routes the refined prompt and image references to Image Playground programmatically on macOS 26.
+- Uses Daylight’s private in-app wallpaper renderer on macOS 27, where Apple removed Image Playground’s hidden generation API.
+- Shows clear Understanding and Creating states before the finished background appears in Daylight.

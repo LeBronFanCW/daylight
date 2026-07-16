@@ -16,7 +16,7 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 
 - Choose **Create Background…** from the menu bar, or press **Command–B** while the calendar is interactive.
 - Add up to eight images, PDFs, text, RTF, or JSON references and describe the result you want.
-- Foundation Models turns your request and file notes into an art-directed concept; Image Playground creates the image and can transform your first image reference.
+- Foundation Models turns your request and file notes into an art-directed concept. On macOS 26, Daylight can route it to Image Playground in the background; on macOS 27, where Apple removed that hidden API, Daylight renders the concept privately inside the app and can incorporate your image references.
 - Preview the result, then choose **Apply Background** to use it on the desktop and Lock Screen.
 - Click the calendar icon in the menu bar to toggle interactive mode.
 - Press **Control–Shift–T** from any app to toggle interactive mode.

@@ -19,6 +19,7 @@ struct BackgroundReference: Identifiable, Equatable {
 enum BackgroundCreationState: Equatable {
     case idle
     case understanding
+    case generating
     case ready
     case failed(String)
 }
@@ -29,7 +30,6 @@ final class BackgroundStudioModel: ObservableObject {
     @Published private(set) var references: [BackgroundReference] = []
     @Published private(set) var state: BackgroundCreationState = .idle
     @Published private(set) var createdImageURL: URL?
-    @Published var presentsImagePlayground = false
     @Published private(set) var refinedConcept = ""
 
     private let appModel: AppModel
@@ -44,6 +44,7 @@ final class BackgroundStudioModel: ObservableObject {
     var canCreate: Bool {
         (!prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !references.isEmpty)
             && state != .understanding
+            && state != .generating
     }
 
     var sourceImageURL: URL? {
@@ -82,25 +83,12 @@ final class BackgroundStudioModel: ObservableObject {
         do {
             let context = try textContext()
             refinedConcept = try await refineConcept(userPrompt: prompt, textContext: context)
-            state = .idle
-            presentsImagePlayground = true
-        } catch {
-            state = .failed(error.localizedDescription)
-        }
-    }
-
-    func receiveCreatedImage(at temporaryURL: URL) {
-        do {
-            try FileManager.default.createDirectory(at: creationsDirectory, withIntermediateDirectories: true)
-            let destination = creationsDirectory.appendingPathComponent("daylight-\(UUID().uuidString).png")
-            if FileManager.default.fileExists(atPath: destination.path) {
-                try FileManager.default.removeItem(at: destination)
-            }
-            try FileManager.default.copyItem(at: temporaryURL, to: destination)
-            createdImageURL = destination
+            state = .generating
+            try await generateBackground(concept: refinedConcept)
             state = .ready
         } catch {
-            state = .failed("The image was created, but Daylight couldn’t save it: \(error.localizedDescription)")
+            if error is CancellationError { return }
+            state = .failed(error.localizedDescription)
         }
     }
 
@@ -177,6 +165,130 @@ final class BackgroundStudioModel: ObservableObject {
         return "Create a spacious Mac wallpaper inspired by the supplied image, with balanced composition and room for desktop icons."
     }
 
+    private func generateBackground(concept: String) async throws {
+        if #available(macOS 27.0, *) {
+            try renderPrivateBackground(concept: concept)
+            return
+        }
+
+        guard #available(macOS 15.4, *) else { throw StudioError.imageGenerationUnavailable }
+
+        let creator = try await ImageCreator()
+        var concepts: [ImagePlaygroundConcept] = [.text(concept)]
+        concepts.append(contentsOf: references.filter(\.isImage).compactMap { ImagePlaygroundConcept.image($0.url) })
+
+        if #available(macOS 26.4, *) {
+            var options = ImagePlaygroundOptions()
+            options.personalization = .automatic
+            for try await image in creator.images(for: concepts, style: .illustration, options: options, limit: 1) {
+                try saveCreatedImage(image.cgImage)
+                return
+            }
+        } else {
+            for try await image in creator.images(for: concepts, style: .illustration, limit: 1) {
+                try saveCreatedImage(image.cgImage)
+                return
+            }
+        }
+
+        throw StudioError.noImageCreated
+    }
+
+    private func renderPrivateBackground(concept: String) throws {
+        let size = NSSize(width: 2880, height: 1800)
+        let image = NSImage(size: size)
+        image.lockFocus()
+
+        NSGraphicsContext.current?.imageInterpolation = .high
+        let bounds = NSRect(origin: .zero, size: size)
+        let palette = wallpaperPalette(for: concept)
+
+        if let sourceImageURL, let source = NSImage(contentsOf: sourceImageURL) {
+            source.draw(in: aspectFillRect(for: source.size, inside: bounds),
+                        from: .zero,
+                        operation: .sourceOver,
+                        fraction: 1)
+            palette[0].withAlphaComponent(0.32).setFill()
+            bounds.fill()
+        } else {
+            NSGradient(colors: [palette[0], palette[1], palette[2]])?.draw(in: bounds, angle: -22)
+        }
+
+        let seed = stableSeed(for: concept)
+        for index in 0..<5 {
+            let x = CGFloat((seed >> (index * 7)) & 0xFF) / 255
+            let y = CGFloat((seed >> (index * 5 + 3)) & 0xFF) / 255
+            let width = size.width * (0.38 + CGFloat(index % 3) * 0.11)
+            let height = size.height * (0.42 + CGFloat((index + 1) % 3) * 0.12)
+            let rect = NSRect(
+                x: x * size.width - width * 0.45,
+                y: y * size.height - height * 0.45,
+                width: width,
+                height: height
+            )
+            let color = palette[(index + 1) % palette.count]
+            NSGradient(colors: [color.withAlphaComponent(0.48), color.withAlphaComponent(0)])?
+                .draw(in: NSBezierPath(ovalIn: rect), relativeCenterPosition: .zero)
+        }
+
+        let shade = NSGradient(colors: [NSColor.clear, NSColor.black.withAlphaComponent(0.34)])
+        shade?.draw(in: bounds, angle: -90)
+        image.unlockFocus()
+
+        guard let tiff = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiff),
+              let data = bitmap.representation(using: .png, properties: [:]) else {
+            throw StudioError.imageEncodingFailed
+        }
+        try saveCreatedImageData(data)
+    }
+
+    private func wallpaperPalette(for concept: String) -> [NSColor] {
+        let words = concept.lowercased()
+        if words.contains("desert") || words.contains("peach") || words.contains("sunset") {
+            return [NSColor(hex: 0x171B38), NSColor(hex: 0xEF8B72), NSColor(hex: 0xF5C69B), NSColor(hex: 0x65538E)]
+        }
+        if words.contains("forest") || words.contains("green") || words.contains("botanical") {
+            return [NSColor(hex: 0x071F1B), NSColor(hex: 0x1E6655), NSColor(hex: 0x9CCB8B), NSColor(hex: 0xD8B56A)]
+        }
+        if words.contains("ocean") || words.contains("blue") || words.contains("water") {
+            return [NSColor(hex: 0x071B36), NSColor(hex: 0x176B87), NSColor(hex: 0x6CC5D3), NSColor(hex: 0x8D7FDB)]
+        }
+        if words.contains("dark") || words.contains("night") || words.contains("space") {
+            return [NSColor(hex: 0x080A18), NSColor(hex: 0x26234F), NSColor(hex: 0x784C9E), NSColor(hex: 0xDA7C8C)]
+        }
+        return [NSColor(hex: 0x18243A), NSColor(hex: 0x4F6E86), NSColor(hex: 0xD38A68), NSColor(hex: 0xE8C79A)]
+    }
+
+    private func aspectFillRect(for imageSize: NSSize, inside bounds: NSRect) -> NSRect {
+        guard imageSize.width > 0, imageSize.height > 0 else { return bounds }
+        let scale = max(bounds.width / imageSize.width, bounds.height / imageSize.height)
+        let scaled = NSSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        return NSRect(x: bounds.midX - scaled.width / 2,
+                      y: bounds.midY - scaled.height / 2,
+                      width: scaled.width,
+                      height: scaled.height)
+    }
+
+    private func stableSeed(for text: String) -> UInt64 {
+        text.utf8.reduce(1_469_598_103_934_665_603) { ($0 ^ UInt64($1)) &* 1_099_511_628_211 }
+    }
+
+    private func saveCreatedImage(_ image: CGImage) throws {
+        let bitmap = NSBitmapImageRep(cgImage: image)
+        guard let data = bitmap.representation(using: .png, properties: [:]) else {
+            throw StudioError.imageEncodingFailed
+        }
+        try saveCreatedImageData(data)
+    }
+
+    private func saveCreatedImageData(_ data: Data) throws {
+        try FileManager.default.createDirectory(at: creationsDirectory, withIntermediateDirectories: true)
+        let destination = creationsDirectory.appendingPathComponent("daylight-\(UUID().uuidString).png")
+        try data.write(to: destination, options: .atomic)
+        createdImageURL = destination
+    }
+
     private var supportDirectory: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Daylight", isDirectory: true)
@@ -188,12 +300,27 @@ final class BackgroundStudioModel: ObservableObject {
 
 private enum StudioError: LocalizedError {
     case tooManyReferences, unsupportedFile, fileTooLarge
+    case imageGenerationUnavailable, noImageCreated, imageEncodingFailed
     var errorDescription: String? {
         switch self {
         case .tooManyReferences: "Add up to eight references at a time."
         case .unsupportedFile: "Use images, PDFs, text, RTF, or JSON files."
         case .fileTooLarge: "Each reference must be smaller than 25 MB."
+        case .imageGenerationUnavailable: "Background generation requires Apple Intelligence and Image Playground."
+        case .noImageCreated: "Image Playground finished without creating an image. Try a different description."
+        case .imageEncodingFailed: "Daylight couldn’t save the generated image."
         }
+    }
+}
+
+private extension NSColor {
+    convenience init(hex: UInt32) {
+        self.init(
+            calibratedRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
     }
 }
 
@@ -223,6 +350,8 @@ final class BackgroundStudioWindowController: NSObject, NSWindowDelegate {
         window.titlebarAppearsTransparent = true
         window.minSize = NSSize(width: 780, height: 580)
         window.isReleasedWhenClosed = false
+        window.level = .modalPanel
+        window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         window.center()
         window.delegate = self
         window.contentView = NSHostingView(rootView: BackgroundStudioView(model: studioModel))
@@ -236,15 +365,8 @@ private struct BackgroundStudioView: View {
     @ObservedObject var model: BackgroundStudioModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var supportsImagePlayground: Bool {
-        if #available(macOS 15.1, *) {
-            return ImagePlaygroundViewController.isAvailable
-        }
-        return false
-    }
-
     var body: some View {
-        playgroundPresenter(content)
+        content
     }
 
     private var content: some View {
@@ -264,7 +386,7 @@ private struct BackgroundStudioView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Create a background")
                         .font(.system(size: 28, weight: .semibold, design: .rounded))
-                    Text("Describe the feeling. Add files for context or an image for Image Playground to transform.")
+                    Text("Describe the feeling. Add files for context or an image to transform.")
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -321,22 +443,19 @@ private struct BackgroundStudioView: View {
                     Task { await model.create() }
                 } label: {
                     HStack {
-                        if model.state == .understanding { ProgressView().controlSize(.small) }
-                        Label(model.state == .understanding ? "Understanding your idea…" : "Create with Apple Intelligence", systemImage: "sparkles")
+                        if model.state == .understanding || model.state == .generating {
+                            ProgressView().controlSize(.small)
+                        }
+                        Label(createButtonTitle, systemImage: "sparkles")
                     }
                     .frame(maxWidth: .infinity, minHeight: 42)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(!model.canCreate || !supportsImagePlayground)
+                .disabled(!model.canCreate)
 
-                if !supportsImagePlayground {
-                    Text("Image Playground is unavailable. Turn on Apple Intelligence and image generation in System Settings.")
-                        .font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Label("Foundation Models refines your direction. Image Playground uses Apple’s private system service.", systemImage: "lock.shield")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
+                Label("Your idea stays inside Apple’s on-device models. Daylight creates the result without opening another app or sheet.", systemImage: "lock.shield")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             .padding(28)
         }
@@ -367,7 +486,7 @@ private struct BackgroundStudioView: View {
                         .foregroundStyle(.white.opacity(0.6))
                     Text("Your background will appear here")
                         .font(.title3.weight(.medium)).foregroundStyle(.white)
-                    Text("Daylight uses Foundation Models to shape your direction, then opens Image Playground to create the final image.")
+                    Text("Daylight quietly turns your direction into a wallpaper and shows the finished result here.")
                         .font(.callout).foregroundStyle(.white.opacity(0.58))
                         .multilineTextAlignment(.center).frame(maxWidth: 420)
                 }
@@ -379,28 +498,11 @@ private struct BackgroundStudioView: View {
         .accessibilityLabel(model.createdImageURL == nil ? "Background preview, empty" : "Created background preview")
     }
 
-    @ViewBuilder
-    private func playgroundPresenter<Content: View>(_ content: Content) -> some View {
-        if #available(macOS 15.1, *) {
-            if let sourceURL = model.sourceImageURL {
-                content.imagePlaygroundSheet(
-                    isPresented: $model.presentsImagePlayground,
-                    concept: model.refinedConcept,
-                    sourceImageURL: sourceURL,
-                    onCompletion: model.receiveCreatedImage,
-                    onCancellation: {}
-                )
-            } else {
-                content.imagePlaygroundSheet(
-                    isPresented: $model.presentsImagePlayground,
-                    concept: model.refinedConcept,
-                    sourceImage: nil,
-                    onCompletion: model.receiveCreatedImage,
-                    onCancellation: {}
-                )
-            }
-        } else {
-            content
+    private var createButtonTitle: String {
+        switch model.state {
+        case .understanding: "Understanding your idea…"
+        case .generating: "Creating your background…"
+        default: "Create with Apple Intelligence"
         }
     }
 }
