@@ -469,27 +469,40 @@ private struct BackgroundStudioView: View {
     }
 
     private var content: some View {
-        HSplitView {
-            editor
-                .frame(minWidth: 330, idealWidth: 370, maxWidth: 430)
-            preview
-                .frame(minWidth: 430, maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: 0) {
+            studioHeader
+
+            Divider()
+
+            HSplitView {
+                editor
+                    .frame(minWidth: 330, idealWidth: 370, maxWidth: 430)
+                preview
+                    .frame(minWidth: 430, maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .tint(.orange)
     }
 
+    private var studioHeader: some View {
+        VStack(spacing: 7) {
+            Text("Create any background")
+                .font(.system(size: 28, weight: .semibold, design: .rounded))
+            Text("Describe what you want, add optional inspiration, then approve the finished image.")
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.horizontal, 28)
+        .padding(.top, 34)
+        .padding(.bottom, 20)
+        .accessibilityElement(children: .combine)
+    }
+
     private var editor: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Create any background")
-                        .font(.system(size: 28, weight: .semibold, design: .rounded))
-                    Text("Describe what you want. On macOS 27, Apple’s Image Playground creates the real image and returns it to Daylight.")
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
                 VStack(alignment: .leading, spacing: 10) {
                     Text(model.hasBaseImage ? "WHAT SHOULD CHANGE?" : "YOUR IDEA")
                         .font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(.secondary)

@@ -1,10 +1,10 @@
 <!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires updating signatures in appcasts that reference this file! This will involve re-running generate_appcast or sign_update.
 -->
-# Daylight 2.5.0
+# Daylight 2.6.0
 
-- Fits and centers the complete Month view on every display, including six-row months.
-- Adds Show Original Wallpaper and preserves the Daylight background for an easy return.
-- Restores the standard menu-bar calendar symbol.
-- Shows today’s actual day number only on the Daylight Dock icon.
-- Refreshes the Dock icon automatically after midnight and Mac wake.
+- Centers the complete Apple Calendar connection group at every display size.
+- Centers Create Background across the full studio window instead of the editor pane.
+- Balances the creation form and preview beneath one shared heading.
+- Keeps prompts, reference names, and detailed content left-aligned for readability.
+- Preserves centered empty, unavailable, and error-state layouts.

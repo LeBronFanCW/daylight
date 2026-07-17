@@ -173,6 +173,7 @@ struct DesktopCalendarView: View {
             Text(title)
                 .font(.system(size: 24, weight: .medium, design: .serif))
                 .foregroundStyle(palette.ink)
+                .multilineTextAlignment(.center)
             Text(message)
                 .font(.system(size: 14, design: .rounded))
                 .foregroundStyle(palette.secondaryInk)
@@ -234,13 +235,16 @@ struct DesktopCalendarView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
             } else {
                 Label("Press Control–Shift–T or use the menu bar to interact", systemImage: "keyboard")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(palette.quietInk)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: 640)
+        .padding(.horizontal, 28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
     private func noticeView(_ message: String) -> some View {
