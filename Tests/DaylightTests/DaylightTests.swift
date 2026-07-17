@@ -3,6 +3,16 @@ import XCTest
 @testable import Daylight
 
 final class DaylightTests: XCTestCase {
+    func testDynamicCalendarDateUsesActualDayAndRefreshesAfterMidnight() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let date = calendar.date(from: DateComponents(year: 2026, month: 7, day: 16, hour: 23, minute: 59))!
+        let expectedRefresh = calendar.date(from: DateComponents(year: 2026, month: 7, day: 17, second: 1))!
+
+        XCTAssertEqual(DynamicCalendarDate.dayNumber(at: date, calendar: calendar), 16)
+        XCTAssertEqual(DynamicCalendarDate.nextRefreshDate(after: date, calendar: calendar), expectedRefresh)
+    }
+
     func testWallpaperPresentationChoosesLightAppearanceForBrightImage() {
         let presentation = WallpaperPresentation.analyzing(luminances: [0.78, 0.82, 0.90])
 

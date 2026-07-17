@@ -31,7 +31,7 @@ NSBezierPath(rect: NSRect(x: 208, y: 690, width: 608, height: 80)).fill()
 
 let paragraph = NSMutableParagraphStyle()
 paragraph.alignment = .center
-let number = "15" as NSString
+let number = String(Calendar.current.component(.day, from: Date())) as NSString
 number.draw(
     in: NSRect(x: 208, y: 276, width: 608, height: 340),
     withAttributes: [

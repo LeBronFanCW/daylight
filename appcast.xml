@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Daylight</title>
         <item>
+            <title>2.4.0</title>
+            <pubDate>Thu, 16 Jul 2026 20:13:23 -0400</pubDate>
+            <link>https://github.com/LeBronFanCW/daylight</link>
+            <sparkle:version>14</sparkle:version>
+            <sparkle:shortVersionString>2.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <sparkle:releaseNotesLink sparkle:edSignature="Bu/+7H/dlNthtC//SL94S/bfU9e1lv3W7nFMdr8OtdXoU7x8HUNO/2qFp8I6BL9AlfzrUFdMrNCQH84nSnAqAQ==" sparkle:length="625">https://raw.githubusercontent.com/LeBronFanCW/daylight/main/Daylight-macOS.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v2.4.0/Daylight-macOS.zip" length="2094092" type="application/octet-stream" sparkle:edSignature="cu0RaW+sQ1KnfepBL2HZz3N4Nb+DmBo0YoKo3rtOUqJYDtd9VC0WAxMs0Gw7/xIRYi2H/yFOVaa9D+E4IRW9Bw=="/>
+        </item>
+        <item>
             <title>2.3.0</title>
             <pubDate>Thu, 16 Jul 2026 20:08:23 -0400</pubDate>
             <link>https://github.com/LeBronFanCW/daylight</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <sparkle:releaseNotesLink sparkle:edSignature="8l9YC1NUlUpgmnhg1ugeke2MdriL5+cFZIDjpnLtnEJZ9RpZH70h9jlVCpJ7j/IxGIx56SppvTOKh3NH0/zoCw==" sparkle:length="775">https://raw.githubusercontent.com/LeBronFanCW/daylight/main/Daylight-macOS.md</sparkle:releaseNotesLink>
             <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v2.0.0/Daylight-macOS.zip" length="1949789" type="application/octet-stream" sparkle:edSignature="hwQ8uM2LeRCeZjAn8dxg1rH1YDzksHeJYgV7PgL8YwQdInaiE4v3dwppzu6dHAea/VQmGGH+sQJnbvb24lQXAA=="/>
         </item>
-        <item>
-            <title>1.4.1</title>
-            <pubDate>Thu, 16 Jul 2026 17:02:25 -0400</pubDate>
-            <link>https://github.com/LeBronFanCW/daylight</link>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>1.4.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <sparkle:releaseNotesLink sparkle:edSignature="3QGVYqfiVyx9eqixKoVRic6ATvqaid4onqrm68Mc3hNdq3rYciE5Mo7HBK42+rZpbdsbPliCoUUwbc7jevakAg==" sparkle:length="605">https://raw.githubusercontent.com/LeBronFanCW/daylight/main/Daylight-macOS.md</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v1.4.1/Daylight-macOS.zip" length="1856909" type="application/octet-stream" sparkle:edSignature="4DdoyOy1ofrK0I/QnMjz2PgkEuD2ZFa4Lso8btBxQKsjfdNKI3g8sXxmSx+YFOhdB6lOvQjnyM+Jz9S6tiFTBA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: ty0VpXl6jDaeg03p8+3Axrh9YV/0u/DPXJvnpHVaxbhKV7I1TfVAQ0vW0YZxysw5TLuW9P+G7SDtf4wB1ZitCQ==
-length: 3502
+edSignature: cIRe8ScL6YLv4cIAGLWxm/FykT5S4bi1cO2DZpJdeW26h2EOhrtajW/HOwz3duLgQOuQRheLNKFAVJhpT3CxBg==
+length: 3503
 -->
