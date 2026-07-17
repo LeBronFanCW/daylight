@@ -20,6 +20,7 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 - Add up to eight images, PDFs, text, RTF, or JSON references. The first image is always clearly labeled as the base image.
 - Apple discontinued hidden Image Playground generation on macOS 27. Daylight uses Apple’s required system sheet for full generation and keeps separate local-only shortcuts for fast edits.
 - Preview the result, then choose **Apply Background** to use it on the desktop and Lock Screen.
+- Daylight automatically samples each background and adjusts its light/dark palette, contrast, panel transparency, and image wash. Choose a manual Light or Dark override from **Appearance** at any time.
 - Click the calendar icon in the menu bar to toggle interactive mode.
 - Press **Control–Shift–T** from any app to toggle interactive mode.
 - Choose **Week**, **Month**, or **Year** from the interaction toolbar or menu bar.

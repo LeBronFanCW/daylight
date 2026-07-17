@@ -43,6 +43,25 @@ struct DaylightPalette: Equatable {
         focus: Color(red: 0.02, green: 0.38, blue: 0.60),
         texture: Color.black.opacity(0.035)
     )
+
+    var adaptedForWallpaper: DaylightPalette {
+        DaylightPalette(
+            isLight: isLight,
+            canvasTop: canvasTop,
+            canvasBottom: canvasBottom,
+            ink: ink,
+            secondaryInk: secondaryInk,
+            quietInk: quietInk,
+            rule: isLight ? Color.black.opacity(0.16) : Color.white.opacity(0.13),
+            today: today,
+            panel: isLight
+                ? Color.white.opacity(0.64)
+                : Color(red: 0.08, green: 0.11, blue: 0.12).opacity(0.70),
+            elevatedPanel: isLight ? Color.white.opacity(0.34) : Color.white.opacity(0.075),
+            focus: focus,
+            texture: isLight ? Color.black.opacity(0.018) : Color.white.opacity(0.026)
+        )
+    }
 }
 
 extension DaylightAppearance {

@@ -3,6 +3,22 @@ import XCTest
 @testable import Daylight
 
 final class DaylightTests: XCTestCase {
+    func testWallpaperPresentationChoosesLightAppearanceForBrightImage() {
+        let presentation = WallpaperPresentation.analyzing(luminances: [0.78, 0.82, 0.90])
+
+        XCTAssertEqual(presentation?.appearance, .light)
+        XCTAssertLessThan(presentation?.washOpacity ?? 1, 0.30)
+    }
+
+    func testWallpaperPresentationChoosesDarkAppearanceAndAdaptsToDetail() {
+        let quiet = WallpaperPresentation.analyzing(luminances: [0.12, 0.14, 0.16])
+        let detailed = WallpaperPresentation.analyzing(luminances: [0.02, 0.18, 0.42])
+
+        XCTAssertEqual(quiet?.appearance, .dark)
+        XCTAssertEqual(detailed?.appearance, .dark)
+        XCTAssertGreaterThan(detailed?.washOpacity ?? 0, quiet?.washOpacity ?? 1)
+    }
+
     func testLaunchAtLoginRegistersOnlyWhenWantedAndMissing() {
         XCTAssertEqual(
             LaunchAtLoginDecision.action(desiredEnabled: true, status: .notRegistered),

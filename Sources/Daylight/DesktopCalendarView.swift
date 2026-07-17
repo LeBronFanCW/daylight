@@ -6,7 +6,10 @@ struct DesktopCalendarView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let calendar = Calendar.current
-    private var palette: DaylightPalette { model.appearanceMode.palette }
+    private var palette: DaylightPalette {
+        let palette = model.resolvedAppearance.palette
+        return model.customBackgroundURL == nil ? palette : palette.adaptedForWallpaper
+    }
     private var isInteractive: Bool { model.isInteractive && !renderingMode.isLockScreen }
 
     init(model: AppModel, renderingMode: CalendarRenderingMode = .live) {
@@ -41,7 +44,7 @@ struct DesktopCalendarView: View {
             }
         }
         .environment(\.daylightPalette, palette)
-        .preferredColorScheme(model.appearanceMode.colorScheme)
+        .preferredColorScheme(model.resolvedAppearance.colorScheme)
         .animation(reduceMotion ? nil : .snappy(duration: 0.24), value: model.isInteractive)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.notice)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.20), value: model.viewMode)
@@ -60,7 +63,8 @@ struct DesktopCalendarView: View {
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-            (palette.isLight ? Color.white.opacity(0.62) : Color.black.opacity(0.52))
+            (palette.isLight ? Color.white : Color.black)
+                .opacity(model.wallpaperPresentation?.washOpacity ?? 0.26)
                 .ignoresSafeArea()
         } else {
             LinearGradient(
@@ -91,9 +95,11 @@ struct DesktopCalendarView: View {
                 Text(periodTitle)
                     .font(.system(size: 34, weight: .medium, design: .serif))
                     .foregroundStyle(palette.ink)
+                    .shadow(color: palette.isLight ? .white.opacity(0.72) : .black.opacity(0.78), radius: 5)
                 Text(periodSubtitle)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(palette.secondaryInk)
+                    .shadow(color: palette.isLight ? .white.opacity(0.68) : .black.opacity(0.74), radius: 4)
             }
 
             Spacer()
@@ -197,8 +203,8 @@ struct DesktopCalendarView: View {
                         model.toggleAppearance()
                     } label: {
                         Label(
-                            model.appearanceMode == .light ? "Dark" : "Light",
-                            systemImage: model.appearanceMode == .light ? "moon.stars" : "sun.max"
+                            model.resolvedAppearance == .light ? "Dark" : "Light",
+                            systemImage: model.resolvedAppearance == .light ? "moon.stars" : "sun.max"
                         )
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(palette.ink)
@@ -332,13 +338,13 @@ private struct InteractionToolbar: View {
                     model.toggleAppearance()
                 } label: {
                     Label(
-                        model.appearanceMode == .light ? "Dark" : "Light",
-                        systemImage: model.appearanceMode == .light ? "moon.stars" : "sun.max"
+                        model.resolvedAppearance == .light ? "Dark" : "Light",
+                        systemImage: model.resolvedAppearance == .light ? "moon.stars" : "sun.max"
                     )
                 }
                 .buttonStyle(.borderless)
                 .frame(minHeight: 44)
-                .help("Switch to \(model.appearanceMode == .light ? "dark" : "light") appearance")
+                .help("Override automatic colors with \(model.resolvedAppearance == .light ? "dark" : "light") appearance")
 
                 Button {
                     model.presentNewEvent(on: model.referenceDate)

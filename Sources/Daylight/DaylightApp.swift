@@ -137,13 +137,24 @@ private struct MenuBarContent: View {
         }
 
         Menu("Appearance") {
+            Button {
+                model.useAutomaticAppearance()
+            } label: {
+                Label(
+                    "Match Background Automatically",
+                    systemImage: model.usesAutomaticAppearance ? "checkmark" : "circle.lefthalf.filled"
+                )
+            }
+
+            Divider()
+
             ForEach(DaylightAppearance.allCases) { appearance in
                 Button {
                     model.setAppearance(appearance)
                 } label: {
                     Label(
                         appearance.title,
-                        systemImage: model.appearanceMode == appearance ? "checkmark" : appearance.symbol
+                        systemImage: !model.usesAutomaticAppearance && model.appearanceMode == appearance ? "checkmark" : appearance.symbol
                     )
                 }
             }

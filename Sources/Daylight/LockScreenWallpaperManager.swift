@@ -39,6 +39,11 @@ final class LockScreenWallpaperManager: ObservableObject {
             .sink { [weak self] _ in self?.refreshIfPossible() }
             .store(in: &subscriptions)
 
+        Publishers.CombineLatest(model.$wallpaperPresentation, model.$usesAutomaticAppearance)
+            .debounce(for: .milliseconds(600), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshIfPossible() }
+            .store(in: &subscriptions)
+
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.refreshIfPossible() }
             .store(in: &subscriptions)

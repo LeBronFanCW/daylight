@@ -12,9 +12,11 @@ final class AppModel: ObservableObject {
     @Published var editorRoute: EditorRoute?
     @Published var notice: String?
     @Published private(set) var appearanceMode: DaylightAppearance
+    @Published private(set) var usesAutomaticAppearance: Bool
     @Published private(set) var viewMode: CalendarViewMode
     @Published private(set) var referenceDate: Date = Date()
     @Published private(set) var customBackgroundURL: URL?
+    @Published private(set) var wallpaperPresentation: WallpaperPresentation?
 
     let isDemoMode: Bool
     private let calendarService: CalendarService
@@ -28,7 +30,10 @@ final class AppModel: ObservableObject {
         let arguments = ProcessInfo.processInfo.arguments
         let savedAppearance = DaylightAppearance(rawValue: defaults.string(forKey: "daylight.appearance") ?? "")
         let savedView = CalendarViewMode(rawValue: defaults.string(forKey: "daylight.viewMode") ?? "")
-        customBackgroundURL = defaults.string(forKey: "daylight.customBackgroundURL").map { URL(fileURLWithPath: $0) }
+        let savedBackgroundURL = defaults.string(forKey: "daylight.customBackgroundURL").map { URL(fileURLWithPath: $0) }
+        customBackgroundURL = savedBackgroundURL
+        wallpaperPresentation = savedBackgroundURL.flatMap(WallpaperAppearanceAnalyzer.analyze)
+        usesAutomaticAppearance = defaults.object(forKey: "daylight.automaticAppearance") as? Bool ?? true
         if arguments.contains("--light") {
             appearanceMode = .light
         } else if arguments.contains("--dark") {
@@ -90,19 +95,37 @@ final class AppModel: ObservableObject {
     }
 
     func setAppearance(_ appearance: DaylightAppearance) {
+        usesAutomaticAppearance = false
+        defaults.set(false, forKey: "daylight.automaticAppearance")
         appearanceMode = appearance
         defaults.set(appearance.rawValue, forKey: "daylight.appearance")
         showNotice("\(appearance.title) appearance")
     }
 
     func toggleAppearance() {
-        setAppearance(appearanceMode == .light ? .dark : .light)
+        setAppearance(resolvedAppearance == .light ? .dark : .light)
+    }
+
+    func useAutomaticAppearance() {
+        usesAutomaticAppearance = true
+        defaults.set(true, forKey: "daylight.automaticAppearance")
+        showNotice("Colors matched to background")
     }
 
     func setCustomBackground(_ url: URL) {
+        wallpaperPresentation = WallpaperAppearanceAnalyzer.analyze(url: url)
+        usesAutomaticAppearance = true
+        defaults.set(true, forKey: "daylight.automaticAppearance")
         customBackgroundURL = url
         defaults.set(url.path, forKey: "daylight.customBackgroundURL")
         showNotice("New background applied")
+    }
+
+    var resolvedAppearance: DaylightAppearance {
+        if usesAutomaticAppearance, let wallpaperPresentation {
+            return wallpaperPresentation.appearance
+        }
+        return appearanceMode
     }
 
     func selectViewMode(_ mode: CalendarViewMode, focus date: Date? = nil) {
