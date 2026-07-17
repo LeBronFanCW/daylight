@@ -96,17 +96,20 @@ struct DesktopCalendarView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 5) {
-            Text(periodTitle)
-                .font(.system(size: 34, weight: .medium, design: .serif))
-                .foregroundStyle(palette.ink)
-                .multilineTextAlignment(.center)
-                .shadow(color: palette.isLight ? .white.opacity(0.72) : .black.opacity(0.78), radius: 5)
-            Text(periodSubtitle)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(palette.secondaryInk)
-                .multilineTextAlignment(.center)
-                .shadow(color: palette.isLight ? .white.opacity(0.68) : .black.opacity(0.74), radius: 4)
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(periodTitle)
+                    .font(.system(size: 34, weight: .medium, design: .serif))
+                    .foregroundStyle(palette.ink)
+                    .shadow(color: palette.isLight ? .white.opacity(0.72) : .black.opacity(0.78), radius: 5)
+                Text(periodSubtitle)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(palette.secondaryInk)
+                    .shadow(color: palette.isLight ? .white.opacity(0.68) : .black.opacity(0.74), radius: 4)
+            }
+
+            Spacer()
+
             HStack(spacing: 10) {
                 Circle()
                     .fill(statusColor)
@@ -120,7 +123,6 @@ struct DesktopCalendarView: View {
             }
             .accessibilityElement(children: .combine)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
         .padding(.bottom, isInteractive && model.authorization == .fullAccess ? 14 : 24)
     }
 
@@ -428,15 +430,6 @@ private struct MonthCalendarView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            let size = fittedCalendarSize(in: proxy.size)
-            calendarGrid
-                .frame(width: size.width, height: size.height)
-                .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-        }
-    }
-
-    private var calendarGrid: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
@@ -471,19 +464,6 @@ private struct MonthCalendarView: View {
                 }
             }
         }
-    }
-
-    private func fittedCalendarSize(in available: CGSize) -> CGSize {
-        let rows = max(days.count / 7, 1)
-        // A consistent cell proportion keeps all five- and six-row months
-        // visible while centering the calendar on every display shape.
-        let aspectRatio = 7 / (CGFloat(rows) * 0.82)
-        guard available.width > 0, available.height > 0 else { return .zero }
-
-        if available.width / available.height > aspectRatio {
-            return CGSize(width: available.height * aspectRatio, height: available.height)
-        }
-        return CGSize(width: available.width, height: available.width / aspectRatio)
     }
 
     private var weekdaySymbols: [String] {
