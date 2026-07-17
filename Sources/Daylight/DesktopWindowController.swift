@@ -23,6 +23,13 @@ final class DesktopWindowController {
             }
             .store(in: &subscriptions)
 
+        model.$showsDaylightBackground
+            .removeDuplicates()
+            .sink { [weak self] isVisible in
+                self?.applyBackgroundVisibility(isVisible)
+            }
+            .store(in: &subscriptions)
+
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.resizeToMainScreen() }
             .store(in: &subscriptions)
@@ -48,7 +55,11 @@ final class DesktopWindowController {
         window.level = desktopLayer
         window.ignoresMouseEvents = !model.isInteractive
         window.acceptsMouseMovedEvents = true
-        window.orderFrontRegardless()
+        if model.showsDaylightBackground {
+            window.orderFrontRegardless()
+        } else {
+            window.orderOut(nil)
+        }
         self.window = window
 
         if model.isInteractive {
@@ -66,7 +77,7 @@ final class DesktopWindowController {
     }
 
     private func applyInteractionMode(_ interactive: Bool) {
-        guard let window else { return }
+        guard let window, model.showsDaylightBackground else { return }
         window.ignoresMouseEvents = !interactive
         if interactive {
             window.level = interactiveLayer
@@ -79,9 +90,21 @@ final class DesktopWindowController {
         }
     }
 
+    private func applyBackgroundVisibility(_ isVisible: Bool) {
+        guard let window else { return }
+        if isVisible {
+            applyInteractionMode(model.isInteractive)
+            window.orderFrontRegardless()
+        } else {
+            window.orderOut(nil)
+        }
+    }
+
     private func resizeToMainScreen() {
         guard let screen = NSScreen.main else { return }
         window?.setFrame(screen.frame, display: true)
-        window?.orderFrontRegardless()
+        if model.showsDaylightBackground {
+            window?.orderFrontRegardless()
+        }
     }
 }

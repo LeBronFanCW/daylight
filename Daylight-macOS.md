@@ -1,10 +1,10 @@
 <!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires updating signatures in appcasts that reference this file! This will involve re-running generate_appcast or sign_update.
 -->
-# Daylight 2.4.0
+# Daylight 2.5.0
 
-- Shows today’s actual day number in the Daylight menu-bar icon.
-- Refreshes the icon automatically just after midnight every day.
-- Corrects the date after the Mac wakes from sleep or the system calendar changes.
-- Uses the current date when building the full-size Daylight application icon.
-- Keeps update and interactive status accessible without replacing the date.
+- Fits and centers the complete Month view on every display, including six-row months.
+- Adds Show Original Wallpaper and preserves the Daylight background for an easy return.
+- Restores the standard menu-bar calendar symbol.
+- Shows today’s actual day number only on the Daylight Dock icon.
+- Refreshes the Dock icon automatically after midnight and Mac wake.

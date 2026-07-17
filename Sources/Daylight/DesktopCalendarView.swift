@@ -420,6 +420,15 @@ private struct MonthCalendarView: View {
     }
 
     var body: some View {
+        GeometryReader { proxy in
+            let size = fittedCalendarSize(in: proxy.size)
+            calendarGrid
+                .frame(width: size.width, height: size.height)
+                .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+        }
+    }
+
+    private var calendarGrid: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
@@ -454,6 +463,19 @@ private struct MonthCalendarView: View {
                 }
             }
         }
+    }
+
+    private func fittedCalendarSize(in available: CGSize) -> CGSize {
+        let rows = max(days.count / 7, 1)
+        // A consistent cell proportion keeps all five- and six-row months
+        // visible while centering the calendar on every display shape.
+        let aspectRatio = 7 / (CGFloat(rows) * 0.82)
+        guard available.width > 0, available.height > 0 else { return .zero }
+
+        if available.width / available.height > aspectRatio {
+            return CGSize(width: available.height * aspectRatio, height: available.height)
+        }
+        return CGSize(width: available.width, height: available.width / aspectRatio)
     }
 
     private var weekdaySymbols: [String] {

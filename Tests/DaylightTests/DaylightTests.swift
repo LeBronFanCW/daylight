@@ -113,6 +113,19 @@ final class DaylightTests: XCTestCase {
         XCTAssertTrue(days.contains { calendar.component(.day, from: $0) == 31 && calendar.component(.month, from: $0) == 7 })
     }
 
+    func testSixRowMonthKeepsTheEntireMonthVisible() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 1
+        let august = calendar.date(from: DateComponents(year: 2026, month: 8, day: 15))!
+
+        let days = CalendarNavigation.monthGridDays(containing: august, calendar: calendar)
+
+        XCTAssertEqual(days.count, 42)
+        XCTAssertTrue(days.contains { calendar.component(.day, from: $0) == 1 && calendar.component(.month, from: $0) == 8 })
+        XCTAssertTrue(days.contains { calendar.component(.day, from: $0) == 31 && calendar.component(.month, from: $0) == 8 })
+    }
+
     func testVisibleYearIntervalContainsTwelveMonths() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!

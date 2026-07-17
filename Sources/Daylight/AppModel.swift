@@ -17,6 +17,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var referenceDate: Date = Date()
     @Published private(set) var customBackgroundURL: URL?
     @Published private(set) var wallpaperPresentation: WallpaperPresentation?
+    @Published private(set) var showsDaylightBackground: Bool
 
     let isDemoMode: Bool
     private let calendarService: CalendarService
@@ -34,6 +35,7 @@ final class AppModel: ObservableObject {
         customBackgroundURL = savedBackgroundURL
         wallpaperPresentation = savedBackgroundURL.flatMap(WallpaperAppearanceAnalyzer.analyze)
         usesAutomaticAppearance = defaults.object(forKey: "daylight.automaticAppearance") as? Bool ?? true
+        showsDaylightBackground = defaults.object(forKey: "daylight.backgroundVisible") as? Bool ?? true
         if arguments.contains("--light") {
             appearanceMode = .light
         } else if arguments.contains("--dark") {
@@ -116,9 +118,19 @@ final class AppModel: ObservableObject {
         wallpaperPresentation = WallpaperAppearanceAnalyzer.analyze(url: url)
         usesAutomaticAppearance = true
         defaults.set(true, forKey: "daylight.automaticAppearance")
+        showsDaylightBackground = true
+        defaults.set(true, forKey: "daylight.backgroundVisible")
         customBackgroundURL = url
         defaults.set(url.path, forKey: "daylight.customBackgroundURL")
         showNotice("New background applied")
+    }
+
+    func setDaylightBackgroundVisible(_ visible: Bool) {
+        showsDaylightBackground = visible
+        defaults.set(visible, forKey: "daylight.backgroundVisible")
+        if visible {
+            showNotice("Daylight background restored")
+        }
     }
 
     var resolvedAppearance: DaylightAppearance {

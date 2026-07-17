@@ -23,7 +23,8 @@ The first time you connect Apple Calendar, macOS asks for full calendar access. 
 - Daylight automatically samples each background and adjusts its light/dark palette, contrast, panel transparency, and image wash. Choose a manual Light or Dark override from **Appearance** at any time.
 - Click the calendar icon in the menu bar to toggle interactive mode.
 - Press **Control–Shift–T** from any app to toggle interactive mode.
-- The menu-bar icon shows today’s day number and updates automatically at midnight and after wake.
+- The Dock icon shows today’s day number and updates automatically at midnight and after wake. The menu-bar icon remains a simple status control.
+- Choose **Show Original Wallpaper** from the menu bar to hide Daylight and restore the previous wallpaper without deleting your custom background.
 - Choose **Week**, **Month**, or **Year** from the interaction toolbar or menu bar.
 - Use the arrow controls to move between periods, or choose **Today** to return.
 - Switch between the warm **Light** appearance and the original **Dark** appearance; Daylight remembers your choice.

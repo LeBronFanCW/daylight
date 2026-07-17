@@ -14,11 +14,7 @@ struct DaylightApp: App {
                 launchAtLoginManager: appDelegate.launchAtLoginManager
             )
         } label: {
-            MenuBarLabel(
-                model: appDelegate.model,
-                updateManager: appDelegate.updateManager,
-                calendarIcon: appDelegate.calendarIcon
-            )
+            MenuBarLabel(model: appDelegate.model, updateManager: appDelegate.updateManager)
         }
         .menuBarExtraStyle(.menu)
     }
@@ -40,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var studioObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.regular)
         calendarIcon.start()
 
         let controller = DesktopWindowController(model: model)
@@ -83,32 +79,17 @@ extension Notification.Name {
 private struct MenuBarLabel: View {
     @ObservedObject var model: AppModel
     @ObservedObject var updateManager: UpdateManager
-    @ObservedObject var calendarIcon: DynamicCalendarIconController
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .strokeBorder(lineWidth: 1.2)
-                Rectangle()
-                    .frame(height: 3)
-                    .clipShape(.rect(topLeadingRadius: 2, topTrailingRadius: 2))
-                    .frame(maxHeight: .infinity, alignment: .top)
-                Text(String(calendarIcon.dayNumber))
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
-                    .padding(.top, 3)
-            }
-            .frame(width: 17, height: 17)
-
-            if updateManager.updateAvailable {
-                Circle()
-                    .fill(.primary)
-                    .frame(width: 5, height: 5)
-                    .background(.bar, in: Circle())
-                    .offset(x: 2, y: -2)
-            }
-        }
+        Image(systemName: iconName)
             .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var iconName: String {
+        if updateManager.updateAvailable {
+            return "calendar.badge.exclamationmark"
+        }
+        return model.isInteractive ? "calendar.badge.checkmark" : "calendar"
     }
 
     private var accessibilityLabel: String {
@@ -126,6 +107,20 @@ private struct MenuBarContent: View {
     @ObservedObject var launchAtLoginManager: LaunchAtLoginManager
 
     var body: some View {
+        Button {
+            if model.showsDaylightBackground {
+                lockScreenManager.restoreOriginalBackground()
+                model.setDaylightBackgroundVisible(false)
+            } else {
+                model.setDaylightBackgroundVisible(true)
+            }
+        } label: {
+            Label(
+                model.showsDaylightBackground ? "Show Original Wallpaper" : "Show Daylight Background",
+                systemImage: model.showsDaylightBackground ? "photo" : "calendar"
+            )
+        }
+
         Button {
             NotificationCenter.default.post(name: .daylightShowBackgroundStudio, object: nil)
         } label: {

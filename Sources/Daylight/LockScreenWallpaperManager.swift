@@ -71,6 +71,13 @@ final class LockScreenWallpaperManager: ObservableObject {
         refreshIfPossible()
     }
 
+    func restoreOriginalBackground() {
+        isEnabled = false
+        defaults.set(false, forKey: enabledKey)
+        lastError = nil
+        restoreOriginalWallpapers()
+    }
+
     private func refreshIfPossible() {
         guard hasStarted, isEnabled, model.authorization == .fullAccess, !isRefreshing else { return }
 
