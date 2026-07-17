@@ -469,17 +469,25 @@ private struct BackgroundStudioView: View {
     }
 
     private var content: some View {
-        VStack(spacing: 0) {
-            studioHeader
+        ScrollView {
+            VStack(spacing: 26) {
+                studioHeader
 
-            Divider()
-
-            HSplitView {
                 editor
-                    .frame(minWidth: 330, idealWidth: 370, maxWidth: 430)
+                    .frame(maxWidth: 660)
+
                 preview
-                    .frame(minWidth: 430, maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: 720)
+                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(.separator.opacity(0.65), lineWidth: 1)
+                    }
             }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.horizontal, 36)
+            .padding(.bottom, 36)
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .tint(.orange)
@@ -494,15 +502,12 @@ private struct BackgroundStudioView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, alignment: .center)
-        .padding(.horizontal, 28)
         .padding(.top, 34)
-        .padding(.bottom, 20)
         .accessibilityElement(children: .combine)
     }
 
     private var editor: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(model.hasBaseImage ? "WHAT SHOULD CHANGE?" : "YOUR IDEA")
                         .font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(.secondary)
@@ -623,8 +628,6 @@ private struct BackgroundStudioView: View {
                     Label("Image Playground is unavailable. Check Apple Intelligence and image generation in System Settings.", systemImage: "exclamationmark.triangle")
                         .font(.caption).foregroundStyle(.orange)
                 }
-            }
-            .padding(28)
         }
     }
 

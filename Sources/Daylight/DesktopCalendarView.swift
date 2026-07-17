@@ -23,20 +23,26 @@ struct DesktopCalendarView: View {
 
             ambientTexture
 
-            VStack(spacing: 0) {
-                header
+            if model.authorization == .fullAccess {
+                VStack(spacing: 0) {
+                    header
 
-                if isInteractive && model.authorization == .fullAccess {
-                    InteractionToolbar(model: model)
-                        .padding(.bottom, 16)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                    if isInteractive {
+                        InteractionToolbar(model: model)
+                            .padding(.bottom, 16)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+
+                    content
                 }
-
+                .padding(.horizontal, DaylightTheme.xLarge)
+                .padding(.top, 34)
+                .padding(.bottom, 28)
+            } else {
                 content
+                    .padding(.horizontal, DaylightTheme.xLarge)
+                    .padding(.vertical, 28)
             }
-            .padding(.horizontal, DaylightTheme.xLarge)
-            .padding(.top, 34)
-            .padding(.bottom, 28)
 
             if !renderingMode.isLockScreen, let notice = model.notice {
                 noticeView(notice)

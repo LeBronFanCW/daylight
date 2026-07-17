@@ -1,10 +1,10 @@
 <!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires updating signatures in appcasts that reference this file! This will involve re-running generate_appcast or sign_update.
 -->
-# Daylight 2.6.0
+# Daylight 2.7.0
 
-- Centers the complete Apple Calendar connection group at every display size.
-- Centers Create Background across the full studio window instead of the editor pane.
-- Balances the creation form and preview beneath one shared heading.
-- Keeps prompts, reference names, and detailed content left-aligned for readability.
-- Preserves centered empty, unavailable, and error-state layouts.
+- Centers Apple Calendar connection against the entire display, not the space below a header.
+- Hides the month/status header until Calendar is connected so setup has no vertical offset.
+- Replaces the left-weighted Create Background split pane with one centered column.
+- Gives the creation form, actions, and preview equal left and right margins.
+- Keeps the complete studio scrollable on smaller screens.
