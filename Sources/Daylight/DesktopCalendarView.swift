@@ -65,13 +65,18 @@ struct DesktopCalendarView: View {
     @ViewBuilder
     private var background: some View {
         if let url = model.customBackgroundURL, let image = NSImage(contentsOf: url) {
-            Image(nsImage: image)
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-            (palette.isLight ? Color.white : Color.black)
-                .opacity(model.wallpaperPresentation?.washOpacity ?? 0.26)
-                .ignoresSafeArea()
+            GeometryReader { proxy in
+                ZStack {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .clipped()
+                    (palette.isLight ? Color.white : Color.black)
+                        .opacity(model.wallpaperPresentation?.washOpacity ?? 0.26)
+                }
+            }
+            .ignoresSafeArea()
         } else {
             LinearGradient(
                 colors: [palette.canvasTop, palette.canvasBottom],
