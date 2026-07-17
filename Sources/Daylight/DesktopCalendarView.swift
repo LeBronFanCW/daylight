@@ -96,20 +96,17 @@ struct DesktopCalendarView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(periodTitle)
-                    .font(.system(size: 34, weight: .medium, design: .serif))
-                    .foregroundStyle(palette.ink)
-                    .shadow(color: palette.isLight ? .white.opacity(0.72) : .black.opacity(0.78), radius: 5)
-                Text(periodSubtitle)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(palette.secondaryInk)
-                    .shadow(color: palette.isLight ? .white.opacity(0.68) : .black.opacity(0.74), radius: 4)
-            }
-
-            Spacer()
-
+        VStack(spacing: 5) {
+            Text(periodTitle)
+                .font(.system(size: 34, weight: .medium, design: .serif))
+                .foregroundStyle(palette.ink)
+                .multilineTextAlignment(.center)
+                .shadow(color: palette.isLight ? .white.opacity(0.72) : .black.opacity(0.78), radius: 5)
+            Text(periodSubtitle)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(palette.secondaryInk)
+                .multilineTextAlignment(.center)
+                .shadow(color: palette.isLight ? .white.opacity(0.68) : .black.opacity(0.74), radius: 4)
             HStack(spacing: 10) {
                 Circle()
                     .fill(statusColor)
@@ -123,6 +120,7 @@ struct DesktopCalendarView: View {
             }
             .accessibilityElement(children: .combine)
         }
+        .frame(maxWidth: .infinity, alignment: .center)
         .padding(.bottom, isInteractive && model.authorization == .fullAccess ? 14 : 24)
     }
 
