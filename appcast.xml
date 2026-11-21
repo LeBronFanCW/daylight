@@ -6,6 +6,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Daylight</title>
         <item>
+            <title>3.0.0</title>
+            <pubDate>Sat, 21 Nov 2026 09:43:37 -0500</pubDate>
+            <sparkle:version>31</sparkle:version>
+            <sparkle:shortVersionString>3.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>Rebuilt from scratch. Daylight now sets your real wallpaper, so your calendar shows on every Space and on the Lock Screen.</li><li>Uses every calendar in the Calendar app (iCloud, Google, Outlook). Choose which ones show.</li><li>Month, Week, Agenda and Focus layouts, seven themes, your own photo, fonts and colours.</li><li>Press Control-Option-Space anywhere and type things like “Dentist tue 3pm” to add them.</li><li>Your next meeting sits in the menu bar, with a Join button for Zoom, Meet and Teams.</li><li>Small updates now install quietly in the background.</li></ul>]]></description>
+            <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v3.0.0/Daylight-macOS.zip" sparkle:edSignature="7XMNbBOGNg4muARzbNWtD1Gu2eTImj9QMzhN0S1U1dVIjXpai0m8wtv6mWaqhSSqNVTMM38FBYl4GeQrJD1lAg==" length="3044346" type="application/octet-stream"/>
+        </item>
+        <item>
             <title>2.6.0</title>
             <pubDate>Thu, 16 Jul 2026 20:24:01 -0400</pubDate>
             <link>https://github.com/LeBronFanCW/daylight</link>
@@ -41,6 +50,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: EGyNe96viAx58sta9gMP1Zvvvfi0c/0LzyBMHEWIY7GhyEkdDkyCIxB2RWYnvuZCrD+jSFIgD5ROiMzbcK21CA==
-length: 3504
+edSignature: ORD1U74ujVBbyR2u+fOoFxcjFGCjj7dVWZ2T5xfUDHuKWKv1DT2j1uAEzwubsHteA+fZEddnsAiG4ivzlfa3CQ==
+length: 4750
 -->
