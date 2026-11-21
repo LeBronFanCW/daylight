@@ -6,6 +6,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Daylight</title>
         <item>
+            <title>3.1.0</title>
+            <pubDate>Sat, 21 Nov 2026 10:24:29 -0500</pubDate>
+            <sparkle:version>32</sparkle:version>
+            <sparkle:shortVersionString>3.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>Edit on your desktop: press Control-Option-D and your wallpaper becomes a calendar you can click. Pick a day, type “Lunch 1pm”, press Return.</li><li>New Calendar layout: the whole month edge to edge, with no big date and no times.</li><li>New Stage and Aurora backgrounds, drawn sharp at full screen.</li><li>Save looks and switch between them in one click. Use the wallpaper you had before Daylight as a backdrop.</li><li>Sunday dates and today stay readable on dark photos.</li></ul>]]></description>
+            <enclosure url="https://github.com/LeBronFanCW/daylight/releases/download/v3.1.0/Daylight-macOS.zip" sparkle:edSignature="EQYx73xt2JsXLqfebCuGTRnlwj/0z/XJYO8N8MKiDzVWL0dT2d2XwqgYWNtukJ6y44uf7ep323KEvtBOWAwBCw==" length="3181865" type="application/octet-stream"/>
+        </item>
+        <item>
             <title>3.0.0</title>
             <pubDate>Sat, 21 Nov 2026 09:43:37 -0500</pubDate>
             <sparkle:version>31</sparkle:version>
@@ -50,6 +59,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: ORD1U74ujVBbyR2u+fOoFxcjFGCjj7dVWZ2T5xfUDHuKWKv1DT2j1uAEzwubsHteA+fZEddnsAiG4ivzlfa3CQ==
-length: 4750
+edSignature: 1xjTZR3Pt/1AHTpMFrX0gjAis9qFde2d4wvUJixgfXwApVZHQn3+XDd4xmCB7O/UWwulVyBCu03SMkqmEUmSDw==
+length: 5905
 -->
